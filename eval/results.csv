@@ -1,0 +1,103 @@
+method,question_id,type,question,hit,first_relevant_rank,relevant_in_top_k,total_relevant,top_chunks
+bm25,q01,exact_term,Where is Safety Energy Lock 17 located?,1,1,1,3,jsj_001_c03 jsj_001_c01 jsj_012_c02 jsj_006_c06 jsj_014_c04
+bm25,q02,vocab_mismatch,Which finger do I hold for fear?,1,1,3,5,jsj_003_c01 jsj_004_c04 jsj_002_c07 jsj_004_c05 jsj_007_c02
+bm25,q03,conceptual,What does the little finger represent in Jin Shin Jyutsu?,1,1,2,9,jsj_002_c01 jsj_002_c04 jsj_001_c04 jsj_002_c06 jsj_002_c02
+bm25,q04,exact_term,Where is SEL 25 located on the body?,1,1,1,1,jsj_011_c01 jsj_011_c03 jsj_006_c06 jsj_001_c03 jsj_011_c02
+bm25,q05,factual,How long should I hold each finger?,1,1,2,2,jsj_009_c07 jsj_009_c06 jsj_003_c01 jsj_001_c04 jsj_012_c04
+bm25,q06,factual,Who rediscovered Jin Shin Jyutsu and when?,1,1,4,10,jsj_006_c03 jsj_004_c02 jsj_005_c01 jsj_013_c05 jsj_014_c02
+bm25,q07,factual,Who brought Jin Shin Jyutsu to the West?,1,1,4,16,jsj_010_c05 jsj_004_c02 jsj_006_c04 jsj_014_c02 jsj_015_c03
+bm25,q08,factual,How do you pronounce Jin Shin Jyutsu?,1,1,1,2,jsj_006_c01 jsj_013_c01 jsj_004_c02 jsj_006_c02 jsj_006_c09
+bm25,q09,factual,What does Jin Shin Jyutsu mean when translated literally?,1,1,2,5,jsj_006_c01 jsj_013_c05 jsj_012_c02 jsj_006_c04 jsj_013_c07
+bm25,q10,factual,How many Safety Energy Locks are there?,1,2,2,10,jsj_012_c03 jsj_014_c03 jsj_011_c01 jsj_012_c02 jsj_008_c01
+bm25,q11,exact_term,What is Safety Energy Lock 1 called and where is it?,1,1,1,1,jsj_006_c06 jsj_005_c02 jsj_014_c03 jsj_006_c04 jsj_012_c04
+bm25,q12,factual,What is the 36 conscious breaths exercise?,1,1,3,3,jsj_010_c03 jsj_010_c02 jsj_010_c04 jsj_010_c01 jsj_015_c01
+bm25,q13,conceptual,Why does the breathing practice start with an exhale?,1,1,4,5,jsj_010_c04 jsj_010_c03 jsj_010_c02 jsj_010_c01 jsj_006_c06
+bm25,q14,exact_term,What does SEL 3 do for colds and flu?,1,2,1,1,jsj_012_c03 jsj_012_c02 jsj_012_c06 jsj_012_c05 jsj_012_c04
+bm25,q15,exact_term,Which Safety Energy Locks are held in the flow for colds?,0,,0,2,jsj_012_c03 jsj_012_c02 jsj_012_c04 jsj_012_c08 jsj_014_c03
+bm25,q16,conceptual,Is Jin Shin Jyutsu a religion?,1,1,2,2,jsj_013_c01 jsj_013_c07 jsj_013_c03 jsj_013_c02 jsj_013_c06
+bm25,q17,safety,Is Jin Shin Jyutsu safe during pregnancy?,0,,0,3,jsj_006_c11 jsj_012_c07 jsj_015_c04 jsj_002_c05 jsj_006_c07
+bm25,q18,safety,Can Jin Shin Jyutsu be used alongside cancer treatment?,1,2,2,4,jsj_006_c11 jsj_008_c02 jsj_004_c03 jsj_009_c09 jsj_008_c03
+bm25,q19,conceptual,What happens during a session with a practitioner?,1,1,4,14,jsj_006_c07 jsj_015_c02 jsj_014_c05 jsj_014_c04 jsj_009_c05
+bm25,q20,factual,How long does a practitioner session last?,1,1,2,6,jsj_014_c04 jsj_006_c07 jsj_015_c02 jsj_006_c08 jsj_008_c03
+bm25,q21,vocab_mismatch,How can I get rid of a headache?,1,1,1,5,jsj_006_c02 jsj_011_c02 jsj_011_c03 jsj_004_c04 jsj_004_c03
+bm25,q22,vocab_mismatch,What can I do about feeling sleepy after lunch?,1,1,1,1,jsj_002_c05 jsj_002_c04 jsj_008_c03 jsj_006_c08 jsj_006_c10
+bm25,q23,vocab_mismatch,What helps when my heart is racing from anxiety?,1,5,1,4,jsj_001_c03 jsj_003_c01 jsj_015_c03 jsj_002_c03 jsj_002_c04
+bm25,q24,vocab_mismatch,How do I ease sore muscles after a workout?,1,1,1,1,jsj_011_c02 jsj_004_c04 jsj_014_c02 jsj_007_c01 jsj_008_c01
+bm25,q25,vocab_mismatch,What can I do about tight shoulders?,1,1,2,5,jsj_012_c01 jsj_012_c03 jsj_012_c04 jsj_012_c05 jsj_012_c06
+bm25,q26,vocab_mismatch,What helps if I can't sleep?,0,,0,2,jsj_013_c02 jsj_012_c07 jsj_006_c07 jsj_015_c03 jsj_012_c03
+bm25,q27,multi_doc,Why do babies suck their thumbs?,1,1,5,13,jsj_007_c02 jsj_007_c01 jsj_009_c05 jsj_006_c02 jsj_013_c04
+bm25,q28,conceptual,What are the jumper cables Mary Burmeister talks about?,1,1,5,7,jsj_009_c04 jsj_006_c06 jsj_006_c05 jsj_014_c05 jsj_014_c03
+bm25,q29,multi_doc,Which emotion is linked to the ring finger?,1,1,4,5,jsj_009_c08 jsj_007_c03 jsj_004_c04 jsj_002_c01 jsj_007_c02
+bm25,q30,safety,Is there scientific evidence that Jin Shin Jyutsu works?,0,,0,1,jsj_003_c01 jsj_006_c06 jsj_006_c09 jsj_014_c04 jsj_014_c03
+bm25,q31,vocab_mismatch,What can I hold when I feel a panic attack coming on?,1,1,1,1,jsj_001_c03 jsj_012_c04 jsj_002_c05 jsj_002_c04 jsj_014_c05
+bm25,q32,conceptual,What is physio-philosophy in Jin Shin Jyutsu?,1,1,2,2,jsj_013_c03 jsj_008_c01 jsj_008_c03 jsj_008_c02 jsj_013_c06
+bm25,q33,conceptual,What does Now Know MYSELF mean?,1,1,3,9,jsj_006_c02 jsj_005_c01 jsj_012_c01 jsj_005_c02 jsj_006_c01
+bm25,q34,factual,How did Astrid Kauffmann first discover Jin Shin Jyutsu?,1,1,2,3,jsj_009_c09 jsj_006_c09 jsj_006_c10 jsj_013_c06 jsj_012_c01
+dense,q01,exact_term,Where is Safety Energy Lock 17 located?,0,,0,3,jsj_006_c04 jsj_012_c02 jsj_014_c03 jsj_006_c05 jsj_008_c01
+dense,q02,vocab_mismatch,Which finger do I hold for fear?,1,1,2,5,jsj_007_c02 jsj_002_c01 jsj_007_c03 jsj_009_c07 jsj_003_c01
+dense,q03,conceptual,What does the little finger represent in Jin Shin Jyutsu?,1,1,3,9,jsj_002_c01 jsj_004_c01 jsj_002_c07 jsj_004_c05 jsj_007_c03
+dense,q04,exact_term,Where is SEL 25 located on the body?,1,3,1,1,jsj_006_c05 jsj_006_c04 jsj_011_c01 jsj_011_c02 jsj_006_c06
+dense,q05,factual,How long should I hold each finger?,1,1,2,2,jsj_009_c06 jsj_009_c07 jsj_007_c03 jsj_002_c01 jsj_006_c07
+dense,q06,factual,Who rediscovered Jin Shin Jyutsu and when?,1,1,2,10,jsj_009_c04 jsj_006_c03 jsj_013_c05 jsj_008_c03 jsj_004_c05
+dense,q07,factual,Who brought Jin Shin Jyutsu to the West?,1,1,2,16,jsj_009_c04 jsj_013_c05 jsj_006_c03 jsj_004_c04 jsj_004_c05
+dense,q08,factual,How do you pronounce Jin Shin Jyutsu?,1,1,1,2,jsj_006_c01 jsj_004_c04 jsj_001_c05 jsj_004_c05 jsj_004_c01
+dense,q09,factual,What does Jin Shin Jyutsu mean when translated literally?,1,1,2,5,jsj_006_c01 jsj_004_c05 jsj_013_c05 jsj_004_c01 jsj_004_c04
+dense,q10,factual,How many Safety Energy Locks are there?,1,1,4,10,jsj_006_c04 jsj_006_c05 jsj_014_c03 jsj_012_c02 jsj_008_c01
+dense,q11,exact_term,What is Safety Energy Lock 1 called and where is it?,0,,0,1,jsj_006_c04 jsj_014_c03 jsj_012_c02 jsj_006_c05 jsj_008_c01
+dense,q12,factual,What is the 36 conscious breaths exercise?,1,1,3,3,jsj_010_c03 jsj_010_c04 jsj_010_c02 jsj_010_c01 jsj_011_c01
+dense,q13,conceptual,Why does the breathing practice start with an exhale?,1,1,5,5,jsj_010_c01 jsj_010_c03 jsj_010_c04 jsj_010_c02 jsj_010_c05
+dense,q14,exact_term,What does SEL 3 do for colds and flu?,1,3,1,1,jsj_012_c03 jsj_012_c01 jsj_012_c02 jsj_012_c08 jsj_006_c05
+dense,q15,exact_term,Which Safety Energy Locks are held in the flow for colds?,0,,0,2,jsj_012_c02 jsj_012_c08 jsj_014_c03 jsj_006_c04 jsj_012_c03
+dense,q16,conceptual,Is Jin Shin Jyutsu a religion?,1,1,2,2,jsj_013_c01 jsj_013_c05 jsj_013_c07 jsj_013_c06 jsj_004_c05
+dense,q17,safety,Is Jin Shin Jyutsu safe during pregnancy?,1,1,3,3,jsj_004_c03 jsj_006_c11 jsj_006_c10 jsj_004_c02 jsj_008_c02
+dense,q18,safety,Can Jin Shin Jyutsu be used alongside cancer treatment?,1,1,2,4,jsj_004_c03 jsj_006_c11 jsj_015_c03 jsj_014_c02 jsj_005_c03
+dense,q19,conceptual,What happens during a session with a practitioner?,1,1,5,14,jsj_014_c04 jsj_014_c05 jsj_015_c02 jsj_005_c02 jsj_006_c07
+dense,q20,factual,How long does a practitioner session last?,1,1,2,6,jsj_014_c04 jsj_009_c06 jsj_006_c07 jsj_005_c02 jsj_006_c08
+dense,q21,vocab_mismatch,How can I get rid of a headache?,1,2,1,5,jsj_001_c05 jsj_013_c06 jsj_004_c04 jsj_001_c04 jsj_008_c02
+dense,q22,vocab_mismatch,What can I do about feeling sleepy after lunch?,1,2,1,1,jsj_009_c08 jsj_002_c05 jsj_002_c04 jsj_001_c03 jsj_001_c04
+dense,q23,vocab_mismatch,What helps when my heart is racing from anxiety?,1,2,2,4,jsj_001_c03 jsj_002_c04 jsj_009_c08 jsj_003_c01 jsj_015_c03
+dense,q24,vocab_mismatch,How do I ease sore muscles after a workout?,1,1,1,1,jsj_011_c02 jsj_011_c03 jsj_011_c01 jsj_012_c07 jsj_012_c05
+dense,q25,vocab_mismatch,What can I do about tight shoulders?,1,1,3,5,jsj_012_c03 jsj_012_c07 jsj_011_c03 jsj_012_c01 jsj_012_c04
+dense,q26,vocab_mismatch,What helps if I can't sleep?,1,1,1,2,jsj_009_c08 jsj_015_c03 jsj_001_c03 jsj_012_c03 jsj_001_c01
+dense,q27,multi_doc,Why do babies suck their thumbs?,1,1,4,13,jsj_009_c05 jsj_007_c02 jsj_007_c01 jsj_002_c01 jsj_006_c02
+dense,q28,conceptual,What are the jumper cables Mary Burmeister talks about?,1,1,3,7,jsj_009_c04 jsj_006_c06 jsj_006_c05 jsj_006_c03 jsj_010_c05
+dense,q29,multi_doc,Which emotion is linked to the ring finger?,1,1,2,5,jsj_007_c02 jsj_002_c01 jsj_002_c06 jsj_007_c03 jsj_002_c07
+dense,q30,safety,Is there scientific evidence that Jin Shin Jyutsu works?,1,2,1,1,jsj_004_c03 jsj_006_c10 jsj_004_c02 jsj_006_c11 jsj_014_c02
+dense,q31,vocab_mismatch,What can I hold when I feel a panic attack coming on?,1,1,1,1,jsj_001_c03 jsj_002_c04 jsj_003_c01 jsj_001_c04 jsj_001_c01
+dense,q32,conceptual,What is physio-philosophy in Jin Shin Jyutsu?,1,2,2,2,jsj_008_c03 jsj_013_c03 jsj_008_c01 jsj_008_c02 jsj_015_c01
+dense,q33,conceptual,What does Now Know MYSELF mean?,1,2,1,9,jsj_002_c07 jsj_006_c02 jsj_013_c07 jsj_013_c02 jsj_002_c06
+dense,q34,factual,How did Astrid Kauffmann first discover Jin Shin Jyutsu?,1,2,1,3,jsj_009_c04 jsj_009_c09 jsj_014_c01 jsj_006_c03 jsj_005_c01
+hybrid,q01,exact_term,Where is Safety Energy Lock 17 located?,1,2,1,3,jsj_012_c02 jsj_001_c03 jsj_001_c01 jsj_014_c03 jsj_011_c01
+hybrid,q02,vocab_mismatch,Which finger do I hold for fear?,1,1,2,5,jsj_003_c01 jsj_007_c02 jsj_002_c07 jsj_002_c06 jsj_007_c03
+hybrid,q03,conceptual,What does the little finger represent in Jin Shin Jyutsu?,1,1,2,9,jsj_002_c01 jsj_002_c07 jsj_002_c06 jsj_002_c04 jsj_007_c03
+hybrid,q04,exact_term,Where is SEL 25 located on the body?,1,1,1,1,jsj_011_c01 jsj_006_c06 jsj_006_c04 jsj_011_c02 jsj_001_c03
+hybrid,q05,factual,How long should I hold each finger?,1,1,2,2,jsj_009_c06 jsj_009_c07 jsj_007_c03 jsj_006_c07 jsj_001_c04
+hybrid,q06,factual,Who rediscovered Jin Shin Jyutsu and when?,1,1,3,10,jsj_006_c03 jsj_013_c05 jsj_005_c01 jsj_014_c01 jsj_006_c01
+hybrid,q07,factual,Who brought Jin Shin Jyutsu to the West?,1,1,4,16,jsj_010_c05 jsj_009_c04 jsj_006_c03 jsj_013_c01 jsj_006_c01
+hybrid,q08,factual,How do you pronounce Jin Shin Jyutsu?,1,1,1,2,jsj_006_c01 jsj_004_c02 jsj_004_c01 jsj_013_c01 jsj_010_c05
+hybrid,q09,factual,What does Jin Shin Jyutsu mean when translated literally?,1,1,2,5,jsj_006_c01 jsj_013_c05 jsj_013_c07 jsj_004_c01 jsj_006_c02
+hybrid,q10,factual,How many Safety Energy Locks are there?,1,1,3,10,jsj_014_c03 jsj_006_c04 jsj_012_c02 jsj_011_c01 jsj_008_c01
+hybrid,q11,exact_term,What is Safety Energy Lock 1 called and where is it?,1,3,1,1,jsj_006_c04 jsj_014_c03 jsj_006_c06 jsj_006_c05 jsj_008_c01
+hybrid,q12,factual,What is the 36 conscious breaths exercise?,1,1,3,3,jsj_010_c03 jsj_010_c02 jsj_010_c04 jsj_010_c01 jsj_011_c01
+hybrid,q13,conceptual,Why does the breathing practice start with an exhale?,1,1,5,5,jsj_010_c04 jsj_010_c03 jsj_010_c01 jsj_010_c02 jsj_010_c05
+hybrid,q14,exact_term,What does SEL 3 do for colds and flu?,1,2,1,1,jsj_012_c03 jsj_012_c02 jsj_012_c01 jsj_012_c05 jsj_012_c08
+hybrid,q15,exact_term,Which Safety Energy Locks are held in the flow for colds?,0,,0,2,jsj_012_c02 jsj_012_c03 jsj_012_c08 jsj_014_c03 jsj_012_c04
+hybrid,q16,conceptual,Is Jin Shin Jyutsu a religion?,1,1,2,2,jsj_013_c01 jsj_013_c07 jsj_013_c05 jsj_013_c06 jsj_013_c02
+hybrid,q17,safety,Is Jin Shin Jyutsu safe during pregnancy?,1,2,3,3,jsj_006_c11 jsj_004_c03 jsj_004_c02 jsj_008_c02 jsj_006_c10
+hybrid,q18,safety,Can Jin Shin Jyutsu be used alongside cancer treatment?,1,2,3,4,jsj_006_c11 jsj_004_c03 jsj_008_c02 jsj_005_c03 jsj_015_c03
+hybrid,q19,conceptual,What happens during a session with a practitioner?,1,1,4,14,jsj_014_c04 jsj_014_c05 jsj_015_c02 jsj_006_c07 jsj_006_c10
+hybrid,q20,factual,How long does a practitioner session last?,1,1,2,6,jsj_014_c04 jsj_006_c07 jsj_009_c06 jsj_006_c08 jsj_015_c02
+hybrid,q21,vocab_mismatch,How can I get rid of a headache?,1,2,2,5,jsj_004_c04 jsj_013_c06 jsj_013_c02 jsj_011_c03 jsj_004_c03
+hybrid,q22,vocab_mismatch,What can I do about feeling sleepy after lunch?,1,1,1,1,jsj_002_c05 jsj_002_c04 jsj_011_c02 jsj_015_c03 jsj_008_c03
+hybrid,q23,vocab_mismatch,What helps when my heart is racing from anxiety?,1,3,2,4,jsj_001_c03 jsj_003_c01 jsj_002_c04 jsj_015_c03 jsj_009_c09
+hybrid,q24,vocab_mismatch,How do I ease sore muscles after a workout?,1,1,1,1,jsj_011_c02 jsj_014_c02 jsj_004_c04 jsj_001_c03 jsj_008_c01
+hybrid,q25,vocab_mismatch,What can I do about tight shoulders?,1,1,3,5,jsj_012_c03 jsj_012_c01 jsj_012_c07 jsj_012_c04 jsj_012_c05
+hybrid,q26,vocab_mismatch,What helps if I can't sleep?,0,,0,2,jsj_015_c03 jsj_012_c03 jsj_013_c02 jsj_012_c07 jsj_012_c05
+hybrid,q27,multi_doc,Why do babies suck their thumbs?,1,1,5,13,jsj_007_c02 jsj_009_c05 jsj_007_c01 jsj_006_c02 jsj_013_c04
+hybrid,q28,conceptual,What are the jumper cables Mary Burmeister talks about?,1,1,5,7,jsj_009_c04 jsj_006_c06 jsj_006_c05 jsj_014_c05 jsj_014_c03
+hybrid,q29,multi_doc,Which emotion is linked to the ring finger?,1,1,2,5,jsj_007_c02 jsj_002_c01 jsj_007_c03 jsj_009_c07 jsj_009_c01
+hybrid,q30,safety,Is there scientific evidence that Jin Shin Jyutsu works?,1,3,1,1,jsj_004_c03 jsj_014_c02 jsj_006_c10 jsj_006_c09 jsj_009_c04
+hybrid,q31,vocab_mismatch,What can I hold when I feel a panic attack coming on?,1,1,1,1,jsj_001_c03 jsj_002_c04 jsj_012_c04 jsj_002_c05 jsj_009_c08
+hybrid,q32,conceptual,What is physio-philosophy in Jin Shin Jyutsu?,1,1,2,2,jsj_013_c03 jsj_008_c03 jsj_008_c01 jsj_008_c02 jsj_013_c06
+hybrid,q33,conceptual,What does Now Know MYSELF mean?,1,1,2,9,jsj_006_c02 jsj_005_c01 jsj_013_c07 jsj_002_c07 jsj_006_c01
+hybrid,q34,factual,How did Astrid Kauffmann first discover Jin Shin Jyutsu?,1,1,2,3,jsj_009_c09 jsj_014_c01 jsj_013_c06 jsj_006_c10 jsj_004_c01

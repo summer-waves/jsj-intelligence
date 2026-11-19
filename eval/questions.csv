@@ -1,0 +1,35 @@
+question_id,question,relevant_docs,must_contain,type
+q01,Where is Safety Energy Lock 17 located?,jsj_001,wrist,exact_term
+q02,Which finger do I hold for fear?,jsj_003;jsj_004;jsj_007;jsj_009,index,vocab_mismatch
+q03,What does the little finger represent in Jin Shin Jyutsu?,jsj_002;jsj_004;jsj_007;jsj_009,effort,conceptual
+q04,Where is SEL 25 located on the body?,jsj_011,sit bones,exact_term
+q05,How long should I hold each finger?,jsj_009,five minutes,factual
+q06,Who rediscovered Jin Shin Jyutsu and when?,jsj_004;jsj_005;jsj_006;jsj_009;jsj_014,murai,factual
+q07,Who brought Jin Shin Jyutsu to the West?,jsj_004;jsj_006;jsj_009;jsj_010;jsj_014,burmeister,factual
+q08,How do you pronounce Jin Shin Jyutsu?,jsj_006;jsj_014,pronounced,factual
+q09,What does Jin Shin Jyutsu mean when translated literally?,jsj_005;jsj_006;jsj_013,creator,factual
+q10,How many Safety Energy Locks are there?,jsj_004;jsj_006;jsj_008;jsj_012;jsj_014,26,factual
+q11,What is Safety Energy Lock 1 called and where is it?,jsj_006,prime mover,exact_term
+q12,What is the 36 conscious breaths exercise?,jsj_010,36,factual
+q13,Why does the breathing practice start with an exhale?,jsj_010,exhale,conceptual
+q14,What does SEL 3 do for colds and flu?,jsj_012,natural antibiotic,exact_term
+q15,Which Safety Energy Locks are held in the flow for colds?,jsj_012,sel 11,exact_term
+q16,Is Jin Shin Jyutsu a religion?,jsj_013,religion,conceptual
+q17,Is Jin Shin Jyutsu safe during pregnancy?,jsj_004;jsj_005;jsj_008,pregnant,safety
+q18,Can Jin Shin Jyutsu be used alongside cancer treatment?,jsj_004;jsj_005;jsj_008;jsj_015,cancer,safety
+q19,What happens during a session with a practitioner?,jsj_005;jsj_006;jsj_014;jsj_015,practitioner,conceptual
+q20,How long does a practitioner session last?,jsj_005;jsj_014;jsj_015,hour,factual
+q21,How can I get rid of a headache?,jsj_006;jsj_009;jsj_013,headache,vocab_mismatch
+q22,What can I do about feeling sleepy after lunch?,jsj_002,2 pm,vocab_mismatch
+q23,What helps when my heart is racing from anxiety?,jsj_002;jsj_009,palpitations,vocab_mismatch
+q24,How do I ease sore muscles after a workout?,jsj_011,sore muscles,vocab_mismatch
+q25,What can I do about tight shoulders?,jsj_012,shoulders,vocab_mismatch
+q26,What helps if I can't sleep?,jsj_009,insomnia,vocab_mismatch
+q27,Why do babies suck their thumbs?,jsj_006;jsj_007;jsj_009;jsj_013,thumb,multi_doc
+q28,What are the jumper cables Mary Burmeister talks about?,jsj_006;jsj_009;jsj_014;jsj_015,jumper cables,conceptual
+q29,Which emotion is linked to the ring finger?,jsj_004;jsj_007;jsj_009,grief,multi_doc
+q30,Is there scientific evidence that Jin Shin Jyutsu works?,jsj_006,clinical,safety
+q31,What can I hold when I feel a panic attack coming on?,jsj_001,panic,vocab_mismatch
+q32,What is physio-philosophy in Jin Shin Jyutsu?,jsj_008;jsj_013,physio-philosophy,conceptual
+q33,What does Now Know MYSELF mean?,jsj_005;jsj_006;jsj_013,myself,conceptual
+q34,How did Astrid Kauffmann first discover Jin Shin Jyutsu?,jsj_008;jsj_009;jsj_013,migraine,factual

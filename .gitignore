@@ -1,0 +1,19 @@
+# Source articles are copyrighted: keep them on your computer only, never on GitHub.
+# The .gitkeep files stay so the folders exist in a fresh clone.
+data/raw/*
+data/clean/*
+!data/raw/.gitkeep
+!data/clean/.gitkeep
+
+# Python virtual environment (a local copy of installed libraries)
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# API keys and secrets (we will use this file later for the LLM key)
+.env
+
+# Chunked article text (copyrighted) stays on your computer
+data/chunks/
