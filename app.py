@@ -61,6 +61,14 @@ if "history" not in st.session_state:
     st.session_state.history = []  # list of result dicts from get_answer()
 
 
+EXCERPT_WORDS = 40  # the page shows only a short excerpt; the full article is behind the link
+
+
+def excerpt(text, n=EXCERPT_WORDS):
+    words = text.split()
+    return " ".join(words[:n]) + (" ..." if len(words) > n else "")
+
+
 def show_result(r):
     """Draw one answer, with all the notes and checks."""
     if r["emergency"]:
@@ -81,7 +89,7 @@ def show_result(r):
             for n, c in enumerate(r["results"], start=1):
                 cited = " (cited in the answer)" if n in r["used"] else ""
                 st.markdown(f"**[{n}] [{c['title']}]({c['url']})**{cited}  \n`{c['chunk_id']}`")
-                st.caption(c["text"])
+                st.caption(excerpt(c["text"]))
     st.caption(SAFETY_NOTE)
 
 
