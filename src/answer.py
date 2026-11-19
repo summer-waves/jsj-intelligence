@@ -70,6 +70,10 @@ EMERGENCY_WORDS = [
 ]
 
 
+class OllamaError(Exception):
+    """Ollama is not running or not reachable."""
+
+
 def build_retriever(chunks):
     """Hybrid search if sentence-transformers is installed, otherwise keyword search only."""
     bm25 = BM25Retriever(chunks)
@@ -106,8 +110,8 @@ def ask_ollama(prompt):
         with urllib.request.urlopen(req, timeout=300) as resp:
             return json.loads(resp.read().decode("utf-8"))["message"]["content"].strip()
     except urllib.error.URLError as e:
-        sys.exit(f"Could not reach Ollama at {OLLAMA_URL} ({e.reason}).\n"
-                 f"Open the Ollama app (or run: ollama serve) and try again.")
+        raise OllamaError(f"Could not reach Ollama at {OLLAMA_URL} ({e.reason}). "
+                          f"Open the Ollama app (or run: ollama serve) and try again.")
 
 
 def check_citations(answer, n_sources):
@@ -117,47 +121,69 @@ def check_citations(answer, n_sources):
     return used, invalid
 
 
-def answer_question(question, retriever, show_context=False):
+def get_answer(question, retriever):
+    """Retrieve, ask the model, and run every check. Returns a dict; prints nothing.
+    Used by both the command line (below) and the Streamlit page (app.py)."""
     results = retriever.search(question, TOP_K)
-    if show_context:
-        for n, r in enumerate(results, start=1):
-            print(f"--- context [{n}] {r['chunk_id']} ---\n{r['text']}\n")
-
-    print("\nThinking (a local model on a laptop CPU can take 10-60 seconds)...\n")
     answer = ask_ollama(build_prompt(question, results))
-
     lowered = question.lower()
-    if any(w in lowered for w in EMERGENCY_WORDS):
-        print(EMERGENCY_NOTE + "\n")
-
-    if any(w in lowered for w in HEALTH_WORDS):
-        print(HEALTH_NOTE + "\n")
-
-    print(answer + "\n")
 
     used, invalid = check_citations(answer, len(results))
     refused = "could not find this in the jsj library" in answer.lower()
-    if invalid:
-        print(f"WARNING: the answer cites source number(s) {invalid} that do not exist. "
-              f"Do not trust those citations.\n")
+    uncited = []
     if not refused:
-        sentences = [x for x in re.split(r"(?<=[.!?])\s+", answer) if x.strip()]
-        uncited = [x for x in sentences if not re.search(r"\[\d+\]", x)]
-        # the opening "According to..." phrase is allowed to stand alone only if it has a citation
-        if used and uncited:
-            print(f"WARNING: {len(uncited)} sentence(s) have no citation and cannot be verified:")
-            for x in uncited:
-                print(f"  - {x.strip()}")
-            print()
-    if not used and not refused:
+        sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", answer) if x.strip()]
+        if used:
+            uncited = [x for x in sentences if not re.search(r"\[\d+\]", x)]
+    return {
+        "question": question,
+        "answer": answer,
+        "results": results,
+        "used": used,
+        "invalid": invalid,
+        "uncited": uncited,
+        "refused": refused,
+        "no_citations": (not used) and (not refused),
+        "emergency": any(w in lowered for w in EMERGENCY_WORDS),
+        "health": any(w in lowered for w in HEALTH_WORDS),
+    }
+
+
+def answer_question(question, retriever, show_context=False):
+    """Command-line version: get the answer and print it."""
+    print("\nThinking (a local model on a laptop CPU can take 10-60 seconds)...\n")
+    try:
+        r = get_answer(question, retriever)
+    except OllamaError as e:
+        sys.exit(str(e))
+
+    if show_context:
+        for n, c in enumerate(r["results"], start=1):
+            print(f"--- context [{n}] {c['chunk_id']} ---\n{c['text']}\n")
+    if r["emergency"]:
+        print(EMERGENCY_NOTE + "\n")
+    if r["health"]:
+        print(HEALTH_NOTE + "\n")
+
+    print(r["answer"] + "\n")
+
+    if r["invalid"]:
+        print(f"WARNING: the answer cites source number(s) {r['invalid']} that do not exist. "
+              f"Do not trust those citations.\n")
+    if r["uncited"]:
+        print(f"WARNING: {len(r['uncited'])} sentence(s) have no citation and cannot be verified:")
+        for x in r["uncited"]:
+            print(f"  - {x}")
+        print()
+    if r["no_citations"]:
         print("WARNING: the answer contains no citations, so it cannot be verified.\n")
 
-    if not refused:
+    if not r["refused"]:
         print("Sources:")
-        for n, r in enumerate(results, start=1):
-            mark = "  <- cited" if n in used else ""
-            print(f"  [{n}] {r['title']} ({r['chunk_id']}){mark}")
-            print(f"      {r['url']}")
+        for n, c in enumerate(r["results"], start=1):
+            mark = "  <- cited" if n in r["used"] else ""
+            print(f"  [{n}] {c['title']} ({c['chunk_id']}){mark}")
+            print(f"      {c['url']}")
         print()
     print(SAFETY_NOTE + "\n")
 

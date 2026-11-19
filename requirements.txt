@@ -1,3 +1,4 @@
 pdfplumber
 numpy
 sentence-transformers
+streamlit
