@@ -1,0 +1,6 @@
+# Only needed for src/langchain_version.py (the LangChain comparison)
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-classic
+rank_bm25

@@ -1,0 +1,7 @@
+method,build,hit@5,precision@5,recall@5,mrr,ms_per_query
+bm25,from scratch,0.882,0.406,0.546,0.815,1.1
+bm25,LangChain,0.853,0.312,0.459,0.704,0.8
+dense,from scratch,0.912,0.388,0.557,0.77,20.5
+dense,LangChain,0.912,0.388,0.557,0.77,25.7
+hybrid,from scratch,0.941,0.435,0.617,0.809,23.6
+hybrid,LangChain,0.971,0.382,0.578,0.767,27.1

@@ -2,3 +2,8 @@ pdfplumber
 numpy
 sentence-transformers
 streamlit
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-classic
+rank_bm25

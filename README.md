@@ -78,6 +78,31 @@ Hit@5 by question type:
 
 **Decision.** The project keeps 180 words. The 250-word setting scores higher on retrieval, but the hybrid gain is about one question, and larger chunks make prompts longer (answers already take about 42 s on a laptop CPU), make citations point to bigger blocks of text, and would require re-running the answer evaluation.
 
+## LangChain comparison
+
+To check my from-scratch retrieval against a standard framework, `src/langchain_version.py`
+rebuilds the same three retrievers with LangChain (`BM25Retriever`, `InMemoryVectorStore` with
+the same MiniLM model, and `EnsembleRetriever`) and scores them on the same chunks and the
+same 34 questions (K=5).
+
+| Method | Build | Hit@5 | Prec@5 | Recall@5 | MRR |
+|---|---|---|---|---|---|
+| bm25 | from scratch | 0.882 | 0.406 | 0.546 | 0.815 |
+| bm25 | LangChain | 0.853 | 0.312 | 0.459 | 0.704 |
+| dense | from scratch | 0.912 | 0.388 | 0.557 | 0.770 |
+| dense | LangChain | 0.912 | 0.388 | 0.557 | 0.770 |
+| hybrid | from scratch | 0.941 | 0.435 | 0.617 | 0.809 |
+| hybrid | LangChain | 0.971 | 0.382 | 0.578 | 0.767 |
+
+- Dense results are identical, as expected: same model, same chunks.
+- LangChain's BM25 scores lower. A likely reason is that it splits on whitespace without
+  stemming or stopword removal, while my version does both (not tested separately).
+- Hybrid is mixed: LangChain's Hit@5 is one question higher (0.971 vs 0.941), but my version
+  ranks relevant chunks higher (better Precision, Recall and MRR).
+- Retrieval speed is similar; embedding the query dominates.
+
+Run it with `pip install -r requirements-langchain.txt` and `python src/langchain_version.py`.
+
 ## Answer generation and safety
 
 `answer.py` constrains the model to the retrieved sources and does not rely on the model alone for safety:
@@ -164,4 +189,5 @@ The source PDFs are web articles that are mostly "All rights reserved" and are u
 - [x] Larger model comparison
 - [x] Chunk-size experiment
 - [ ] More evaluation questions written by people who have not read the documents
-- [ ] Re-implementation with LangChain or LlamaIndex for comparison; Docker
+- [x] Re-implementation with LangChain for comparison (see "LangChain comparison" above)
+- [ ] LlamaIndex comparison; Docker
