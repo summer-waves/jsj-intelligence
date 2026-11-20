@@ -75,6 +75,8 @@ def show_result(r):
         st.error(EMERGENCY_NOTE)
     if r["health"]:
         st.warning(HEALTH_NOTE)
+    if r["withheld"]:
+        st.info(f"The model's answer was replaced by a safety check: {r['withheld']}.")
     st.write(r["answer"])
     if r["invalid"]:
         st.error(f"The answer cites source number(s) {r['invalid']} that do not exist. "

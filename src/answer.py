@@ -121,29 +121,67 @@ def check_citations(answer, n_sources):
     return used, invalid
 
 
+REFUSAL_TEXT = "I could not find this in the JSJ library."
+UNSAFE_TEXT = (
+    "I can't give a reliable summary for this question. The JSJ library does not show that "
+    "Jin Shin Jyutsu cures or treats any medical condition. The passages that were found are "
+    "listed under Sources so you can read them yourself."
+)
+
+# A claim that JSJ cures / treats / heals / "is effective for..." is unsafe unless negated nearby.
+CLAIM = re.compile(r"\b(cure[sd]?|heal[s]?|treat[s]?|effective (?:for|in|with|at))\b", re.I)
+NEGATION = re.compile(r"(not|n't|no|never|cannot|nor|neither|without)\b", re.I)
+
+
+def safe_wording(answer):
+    """False if the answer makes an un-negated cure/treat/heal/effective claim."""
+    for m in CLAIM.finditer(answer):
+        before = answer[max(0, m.start() - 45):m.start()]
+        if not NEGATION.search(before):
+            return False
+    return True
+
+
+def analyze(answer, n_sources):
+    """Citation facts about an answer text: numbers used, invalid numbers, uncited sentences, refused?"""
+    used, invalid = check_citations(answer, n_sources)
+    refused = "could not find this in the jsj library" in answer.lower()
+    uncited = []
+    if not refused and used:
+        sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", answer) if x.strip()]
+        uncited = [x for x in sentences if not re.search(r"\[\d+\]", x)]
+    return used, invalid, uncited, refused
+
+
 def get_answer(question, retriever):
     """Retrieve, ask the model, and run every check. Returns a dict; prints nothing.
     Used by both the command line (below) and the Streamlit page (app.py)."""
     results = retriever.search(question, TOP_K)
-    answer = ask_ollama(build_prompt(question, results))
+    raw_answer = ask_ollama(build_prompt(question, results))
     lowered = question.lower()
 
-    used, invalid = check_citations(answer, len(results))
-    refused = "could not find this in the jsj library" in answer.lower()
-    uncited = []
-    if not refused:
-        sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", answer) if x.strip()]
-        if used:
-            uncited = [x for x in sentences if not re.search(r"\[\d+\]", x)]
+    used, invalid, uncited, refused = analyze(raw_answer, len(results))
+    answer, withheld = raw_answer, None
+
+    # Guards that do not depend on the model behaving:
+    if not refused and (not used or invalid):
+        answer, withheld, refused = REFUSAL_TEXT, "no valid citations", True
+    elif not refused and not safe_wording(raw_answer):
+        answer, withheld = UNSAFE_TEXT, "claims JSJ cures or treats a condition"
+    if withheld:
+        used, invalid, uncited = [], [], []
+
     return {
         "question": question,
         "answer": answer,
+        "raw_answer": raw_answer,   # what the model actually wrote
+        "withheld": withheld,       # None, or the reason the answer was replaced
         "results": results,
         "used": used,
         "invalid": invalid,
         "uncited": uncited,
         "refused": refused,
-        "no_citations": (not used) and (not refused),
+        "no_citations": False,
         "emergency": any(w in lowered for w in EMERGENCY_WORDS),
         "health": any(w in lowered for w in HEALTH_WORDS),
     }
@@ -165,6 +203,8 @@ def answer_question(question, retriever, show_context=False):
     if r["health"]:
         print(HEALTH_NOTE + "\n")
 
+    if r["withheld"]:
+        print(f"(The model's answer was replaced by a safety check: {r['withheld']}.)\n")
     print(r["answer"] + "\n")
 
     if r["invalid"]:

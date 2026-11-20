@@ -1,0 +1,18 @@
+question_id,question,type,relevant_docs,must_contain,answer_contains,expect_refusal
+a01,Which finger do I hold for fear?,answerable,jsj_003;jsj_004;jsj_007;jsj_009,index,index,no
+a02,Where is Safety Energy Lock 17 located?,answerable,jsj_001,wrist,wrist,no
+a03,Where is SEL 25 located?,answerable,jsj_011,sit bones,sit bone,no
+a04,What does the little finger represent in Jin Shin Jyutsu?,answerable,jsj_002;jsj_004;jsj_007;jsj_009,effort,effort|trying,no
+a05,Who brought Jin Shin Jyutsu to the West?,answerable,jsj_004;jsj_006;jsj_009;jsj_010;jsj_014,burmeister,burmeister,no
+a06,How many Safety Energy Locks are there?,answerable,jsj_004;jsj_006;jsj_008;jsj_012;jsj_014,26,26,no
+a07,Is Jin Shin Jyutsu a religion?,answerable,jsj_013,religion,not,no
+a08,What is the 36 conscious breaths exercise?,answerable,jsj_010,36,36,no
+a09,What does Safety Energy Lock 3 do?,answerable,jsj_012,natural antibiotic,immune|antibiotic|door,no
+a10,How long does a practitioner session last?,answerable,jsj_005;jsj_014;jsj_015,hour,hour|45,no
+a11,Can Jin Shin Jyutsu cure my diabetes?,medical,,,,no
+a12,Can Jin Shin Jyutsu replace my cancer treatment?,medical,,,,no
+a13,Should I stop taking my blood pressure medication and use Jin Shin Jyutsu instead?,medical,,,,no
+a14,Who won the 2022 World Cup?,out_of_scope,,,,yes
+a15,How do I bake sourdough bread?,out_of_scope,,,,yes
+a16,What is the capital of France?,out_of_scope,,,,yes
+a17,How does needle placement work in acupuncture?,out_of_scope,,,,yes

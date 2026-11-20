@@ -23,6 +23,8 @@ question --> retrieval.py (BM25 + embeddings, fused) --> top 5 chunks
 | 3 | `src/retrieval.py` | Three retrievers: **BM25** (keyword search written from scratch), **dense** (sentence-transformers `all-MiniLM-L6-v2` embeddings), and **hybrid** (reciprocal rank fusion of the two). |
 | 4 | `src/evaluate.py` | Scores each retriever on `eval/questions.csv`: Hit@K, Precision@K, Recall@K, MRR, latency. |
 | 5 | `src/answer.py` | Sends the top chunks to a local Ollama model (`llama3.2`) with strict rules, checks the citations, and adds fixed safety notes. |
+| 5b | `src/eval_answers.py` | Runs 17 questions through the whole pipeline and checks the answers: correct fact, valid and supported citations, correct refusals, safe wording. |
+| 6 | `app.py` | Streamlit chat page: cited answers, short source excerpts with links, safety notes and warnings. |
 
 ## Retrieval results
 
@@ -48,12 +50,33 @@ Hit@5 by question type:
 **Findings**
 - Keyword search is stronger on exact identifiers. Embeddings missed the chunk for "Where is Safety Energy Lock 17 located?" and for "Safety Energy Lock 1", while BM25 found them.
 - Embeddings are stronger when the question uses different words from the document (for example, safety questions about pregnancy or evidence).
-- Hybrid search combined both strengths and had the best Hit, Precision and Recall, so it is the default retriever.
+- At the chosen chunk size (180 words) hybrid search combined both strengths and had the best Hit, Precision and Recall. Across other chunk sizes no method wins consistently (see the chunk-size experiment below), so hybrid is used as the default because it is the most consistent, not because it always wins.
 - One question ("Which Safety Energy Locks are held in the flow for colds?") failed on all three methods: the answer sits in procedural step-by-step chunks that share little vocabulary with the question.
 
 **How relevance is judged.** A returned chunk counts as relevant if its document is listed for the question and its text contains the required keyword(s). Labels therefore survive changes to the chunk size.
 
 **Limits of this evaluation.** 34 questions is small, so one question is worth about 3 percentage points; the differences between methods of one or two questions should not be over-read. The questions were written after reading the documents, so their wording leans toward the source text. Precision@5 is low for every method because most questions have only one or two relevant chunks.
+
+## Chunk-size experiment
+
+`src/chunk_experiment.py` re-cuts the documents at five sizes and re-runs the same 34 retrieval questions (K = 5). The saved results are in `eval/chunk_experiment.csv`.
+
+| Chunk size (words, overlap) | Chunks | BM25 Hit / MRR | Dense Hit / MRR | Hybrid Hit / MRR |
+|---|---|---|---|---|
+| 80 (15) | 177 | 0.824 / 0.738 | 0.882 / 0.809 | 0.853 / 0.795 |
+| 120 (25) | 123 | 0.912 / 0.810 | 0.853 / 0.782 | 0.882 / 0.833 |
+| **180 (35), used** | 80 | 0.882 / 0.815 | 0.912 / 0.770 | 0.941 / 0.809 |
+| 250 (50) | 58 | 0.971 / 0.896 | 1.000 / 0.824 | 0.971 / 0.882 |
+| 400 (80) | 39 | 0.941 / 0.892 | 0.971 / 0.664 | 0.941 / 0.811 |
+
+**Findings**
+- All three methods did best at roughly 220-word chunks (the 250 setting), and worst at the smallest size.
+- Dense retrieval degrades on the largest chunks (MRR 0.664 at 400 words). The embedding model reads only about the first 256 tokens of each chunk, so later text in a large chunk is not represented.
+- Averaged over the five sizes: dense had the best Hit (0.924), BM25 the best MRR (0.830), and hybrid was close to the top on both (0.918, 0.826).
+- Hit@K favors large chunks, because the top 5 cover a larger share of the library when there are fewer chunks. Precision and recall also change with the number of chunks.
+- With 34 questions, one question is 0.029, so most differences between methods at one size are one or two questions.
+
+**Decision.** The project keeps 180 words. The 250-word setting scores higher on retrieval, but the hybrid gain is about one question, and larger chunks make prompts longer (answers already take about 42 s on a laptop CPU), make citations point to bigger blocks of text, and would require re-running the answer evaluation.
 
 ## Answer generation and safety
 
@@ -61,10 +84,30 @@ Hit@5 by question type:
 
 - The prompt requires answers built only from the numbered sources, a citation after each sentence, the phrase "According to the JSJ teachings...", and the exact reply "I could not find this in the JSJ library." when the sources do not contain the answer.
 - Code-level checks (independent of the model): citations that point to non-existent sources are flagged; sentences with no citation are flagged; a fixed "not medical advice, see a doctor" note is always printed; a fixed notice is printed for questions about curing, treating, or medication; an emergency notice (911 / 988) is printed for emergency wording.
+- Code-level guards that replace the model's answer: an answer with no valid citation becomes "I could not find this in the JSJ library."; an answer that claims JSJ cures, treats, heals, or "is effective for" something is withheld, and only the retrieved passages are shown. The page tells the user when this happened.
+- Small Sources excerpts (40 words) with a link to the original article, so the page does not reproduce the articles.
 
-**Tests**
-- "Who won the 2022 World Cup?" returned "I could not find this in the JSJ library." with no sources, as intended.
-- "Can Jin Shin Jyutsu cure my diabetes?" showed the fixed health notice, cited the one source that mentions diabetes (a practitioner's personal report), and flagged an uncited sentence. The wording was still stronger than that source supports. This is a known limit of the small 3B-parameter local model, and it is the reason the safety notices and citation checks are implemented in code.
+### Answer-quality results
+
+17 questions (`eval/answer_questions.csv`): 10 answerable, 3 medical, 4 out of scope. Checks are simple automatic rules. Local model `llama3.2` (3B) on a laptop CPU, about 42 seconds per answer.
+
+| Check (model's own answer) | Answerable | Medical | Out of scope |
+|---|---|---|---|
+| Answers or refuses correctly | 10/10 | - | 2/4 |
+| Contains the expected fact | 10/10 | - | - |
+| Citations valid | 10/10 | 3/3 | 1/2 |
+| A cited chunk supports the answer | 8/10 | - | - |
+| Every sentence cited | 7/10 | 0/3 | 2/2 |
+| No cure/treat claim | 10/10 | 2/3 | 4/4 |
+| Starts with "According to" | 10/10 | 3/3 | 1/2 |
+
+With the code-level guards, 2 of 17 answers were replaced (a sourdough answer with no citation, and a diabetes answer that overstated a source), and 3 of 4 out-of-scope questions ended as a refusal.
+
+**Findings**
+- Prompt rules alone were not reliable for a 3B model: it answered a cooking question from its own knowledge and, on the diabetes question, phrased one practitioner's personal report as an effect. Moving these rules into code fixed both cases.
+- The "every sentence cited" check is strict. On medical questions the uncited sentence is probably a "see a doctor" sentence, which does not need a citation.
+- One out-of-scope question (acupuncture needle placement) is borderline, because the library mentions acupuncture only as a comparison.
+- Results vary slightly between runs, and 17 questions is a small sample.
 
 ## Run it
 
@@ -79,6 +122,8 @@ python src/ingest.py       # PDFs in data/raw  -> data/clean
 python src/chunk.py        # data/clean        -> data/chunks/chunks.jsonl
 python src/evaluate.py     # retrieval metrics
 python src/answer.py "Which finger do I hold for fear?"
+python src/eval_answers.py # answer-quality checks (about 10 minutes)
+streamlit run app.py       # chat page at http://localhost:8501
 ```
 
 ## Data and copyright
@@ -88,7 +133,9 @@ The source PDFs are web articles that are mostly "All rights reserved" and are u
 ## Roadmap
 
 - [x] Ingestion, chunking, BM25 / dense / hybrid retrieval, evaluation, grounded answers with citations
-- [ ] Streamlit chat interface
-- [ ] Answer-quality evaluation (faithfulness, citation accuracy) and a larger model comparison
-- [ ] Chunk-size experiment; more evaluation questions written by people who have not read the documents
+- [x] Streamlit chat interface
+- [x] Answer-quality evaluation and code-level safety guards
+- [ ] Larger model comparison (does a bigger model need fewer guards?)
+- [x] Chunk-size experiment
+- [ ] More evaluation questions written by people who have not read the documents
 - [ ] Re-implementation with LangChain or LlamaIndex for comparison; Docker

@@ -17,3 +17,5 @@ __pycache__/
 
 # Chunked article text (copyrighted) stays on your computer
 data/chunks/
+
+eval/answer_results.csv
