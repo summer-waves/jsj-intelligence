@@ -15,6 +15,7 @@ Run it from the project folder (Ollama must be running, and llama3.2 downloaded)
 
 import argparse
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -25,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from retrieval import BM25Retriever, HybridRetriever, load_chunks  # noqa: E402
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL = "llama3.2"
+MODEL = os.environ.get("JSJ_MODEL", "llama3.2")  # change with: $env:JSJ_MODEL = "qwen2.5:7b"
 TOP_K = 5
 
 SYSTEM_RULES = """You are JSJ Intelligence, an assistant that answers questions about Jin Shin Jyutsu (JSJ) using ONLY the numbered SOURCES provided in the user's message.
@@ -107,16 +108,23 @@ def ask_ollama(prompt):
         headers={"Content-Type": "application/json"},
     )
     try:
-        with urllib.request.urlopen(req, timeout=300) as resp:
+        with urllib.request.urlopen(req, timeout=900) as resp:
             return json.loads(resp.read().decode("utf-8"))["message"]["content"].strip()
     except urllib.error.URLError as e:
         raise OllamaError(f"Could not reach Ollama at {OLLAMA_URL} ({e.reason}). "
                           f"Open the Ollama app (or run: ollama serve) and try again.")
 
 
+# A citation is a square bracket holding one or more source numbers: [2]   [1, 2, 5]   [1][2]
+CITATION = re.compile(r"\[\s*(\d+(?:\s*[,;]\s*\d+)*)\s*\]")
+
+
 def check_citations(answer, n_sources):
     """Return the citation numbers the model used, and any that do not exist."""
-    used = sorted({int(x) for x in re.findall(r"\[(\d+)\]", answer)})
+    numbers = set()
+    for group in CITATION.findall(answer):
+        numbers.update(int(x) for x in re.findall(r"\d+", group))
+    used = sorted(numbers)
     invalid = [x for x in used if x < 1 or x > n_sources]
     return used, invalid
 
@@ -149,8 +157,22 @@ def analyze(answer, n_sources):
     uncited = []
     if not refused and used:
         sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", answer) if x.strip()]
-        uncited = [x for x in sentences if not re.search(r"\[\d+\]", x)]
+        uncited = [x for x in sentences if not CITATION.search(x)]
     return used, invalid, uncited, refused
+
+
+def apply_guards(raw_answer, n_sources):
+    """Run the code-level guards on the model's answer.
+    Returns (final_answer, withheld_reason_or_None, refused, used, invalid, uncited)."""
+    used, invalid, uncited, refused = analyze(raw_answer, n_sources)
+    answer, withheld = raw_answer, None
+    if not refused and (not used or invalid):
+        answer, withheld, refused = REFUSAL_TEXT, "no valid citations", True
+    elif not refused and not safe_wording(raw_answer):
+        answer, withheld = UNSAFE_TEXT, "claims JSJ cures or treats a condition"
+    if withheld:
+        used, invalid, uncited = [], [], []
+    return answer, withheld, refused, used, invalid, uncited
 
 
 def get_answer(question, retriever):
@@ -160,16 +182,7 @@ def get_answer(question, retriever):
     raw_answer = ask_ollama(build_prompt(question, results))
     lowered = question.lower()
 
-    used, invalid, uncited, refused = analyze(raw_answer, len(results))
-    answer, withheld = raw_answer, None
-
-    # Guards that do not depend on the model behaving:
-    if not refused and (not used or invalid):
-        answer, withheld, refused = REFUSAL_TEXT, "no valid citations", True
-    elif not refused and not safe_wording(raw_answer):
-        answer, withheld = UNSAFE_TEXT, "claims JSJ cures or treats a condition"
-    if withheld:
-        used, invalid, uncited = [], [], []
+    answer, withheld, refused, used, invalid, uncited = apply_guards(raw_answer, len(results))
 
     return {
         "question": question,

@@ -19,3 +19,5 @@ __pycache__/
 data/chunks/
 
 eval/answer_results.csv
+
+eval/answer_results*.csv

@@ -96,8 +96,8 @@ Hit@5 by question type:
 | Answers or refuses correctly | 10/10 | - | 2/4 |
 | Contains the expected fact | 10/10 | - | - |
 | Citations valid | 10/10 | 3/3 | 1/2 |
-| A cited chunk supports the answer | 8/10 | - | - |
-| Every sentence cited | 7/10 | 0/3 | 2/2 |
+| A cited chunk supports the answer | 9/10 | - | - |
+| Every sentence cited | 8/10 | 0/3 | 2/2 |
 | No cure/treat claim | 10/10 | 2/3 | 4/4 |
 | Starts with "According to" | 10/10 | 3/3 | 1/2 |
 
@@ -107,7 +107,32 @@ With the code-level guards, 2 of 17 answers were replaced (a sourdough answer wi
 - Prompt rules alone were not reliable for a 3B model: it answered a cooking question from its own knowledge and, on the diabetes question, phrased one practitioner's personal report as an effect. Moving these rules into code fixed both cases.
 - The "every sentence cited" check is strict. On medical questions the uncited sentence is probably a "see a doctor" sentence, which does not need a citation.
 - One out-of-scope question (acupuncture needle placement) is borderline, because the library mentions acupuncture only as a comparison.
+- An early version of the citation checker read only single citations such as `[2]`, and wrongly failed answers that cite `[1, 2]`. This was found by reading the saved answers, fixed, and all results were re-scored (the numbers above are the corrected ones). Automatic checks on model output need to be read by hand at least once.
 - Results vary slightly between runs, and 17 questions is a small sample.
+
+### Model comparison
+
+The same 17 questions, same retrieval, two local models (CPU only, 11.8 GB RAM laptop). Checks judge the model's own answer; the guards are then applied.
+
+| | `llama3.2` (3B) | `qwen2.5:7b` |
+|---|---|---|
+| Out-of-scope refused by the model itself | 2/4 | **4/4** |
+| Out-of-scope ending as a refusal (after guards) | 3/4 | **4/4** |
+| Answerable questions answered (after guards) | 10/10 | 10/10 |
+| Expected fact present | **10/10** | 9/10 |
+| Citations valid (answerable) | 10/10 | 10/10 |
+| A cited chunk supports the answer | 9/10 | 9/10 |
+| Every sentence cited (answerable) | **8/10** | 6/10 |
+| No cure/treat claim (medical) | **2/3** | 1/3 |
+| Answers replaced by the guards | 2 of 17 | 2 of 17 |
+| Mean seconds per answer | **42** | 58 |
+
+**Findings**
+- The larger model refused every out-of-scope question on its own, while the 3B model needed the guard for one of them. The larger model was also slower, cited fewer of its sentences, and made more cure/treat-style claims on the medical questions.
+- With the guards in place both models behave acceptably, so the guards matter more than model size here. The only end-to-end difference is one borderline out-of-scope question (acupuncture).
+- 17 questions and one run per model is a small sample and the models are not fully deterministic, so these are indications, not rankings.
+
+**Decision.** The project keeps `llama3.2` as the default because it is about 27% faster and equal or better on most checks. To try another model: `$env:JSJ_MODEL = "qwen2.5:7b"` (PowerShell) before `streamlit run app.py`, or `python src/eval_answers.py --model qwen2.5:7b`.
 
 ## Run it
 
@@ -123,6 +148,7 @@ python src/chunk.py        # data/clean        -> data/chunks/chunks.jsonl
 python src/evaluate.py     # retrieval metrics
 python src/answer.py "Which finger do I hold for fear?"
 python src/eval_answers.py # answer-quality checks (about 10 minutes)
+python src/eval_answers.py --rescore eval/answer_results.csv   # re-check saved answers in seconds
 streamlit run app.py       # chat page at http://localhost:8501
 ```
 
@@ -135,7 +161,7 @@ The source PDFs are web articles that are mostly "All rights reserved" and are u
 - [x] Ingestion, chunking, BM25 / dense / hybrid retrieval, evaluation, grounded answers with citations
 - [x] Streamlit chat interface
 - [x] Answer-quality evaluation and code-level safety guards
-- [ ] Larger model comparison (does a bigger model need fewer guards?)
+- [x] Larger model comparison
 - [x] Chunk-size experiment
 - [ ] More evaluation questions written by people who have not read the documents
 - [ ] Re-implementation with LangChain or LlamaIndex for comparison; Docker
