@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from retrieval import BM25Retriever, HybridRetriever, load_chunks  # noqa: E402
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 MODEL = os.environ.get("JSJ_MODEL", "llama3.2")  # change with: $env:JSJ_MODEL = "qwen2.5:7b"
 TOP_K = 5
 

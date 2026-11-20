@@ -1,0 +1,9 @@
+# Keep these OUT of the image (copyrighted data, local files, secrets).
+.venv/
+.git/
+data/
+eval/
+__pycache__/
+*.pyc
+.env
+README.md
