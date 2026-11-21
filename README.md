@@ -103,6 +103,31 @@ same 34 questions (K=5).
 
 Run it with `pip install -r requirements-langchain.txt` and `python src/langchain_version.py`.
 
+## LlamaIndex comparison
+
+`src/llamaindex_version.py` repeats the comparison with LlamaIndex (`BM25Retriever`,
+`VectorStoreIndex` with the same MiniLM model, and `QueryFusionRetriever` in reciprocal-rank
+mode with query rewriting turned off), on the same chunks and the same 34 questions (K=5).
+
+| Method | Build | Hit@5 | Prec@5 | Recall@5 | MRR |
+|---|---|---|---|---|---|
+| bm25 | from scratch | 0.882 | 0.406 | 0.546 | 0.815 |
+| bm25 | LlamaIndex | 0.853 | 0.424 | 0.559 | 0.771 |
+| dense | from scratch | 0.912 | 0.388 | 0.557 | 0.770 |
+| dense | LlamaIndex | 0.912 | 0.388 | 0.557 | 0.770 |
+| hybrid | from scratch | 0.941 | 0.435 | 0.617 | 0.809 |
+| hybrid | LlamaIndex | 0.941 | 0.429 | 0.590 | 0.806 |
+
+- Dense results are identical in both frameworks (same model, same chunks).
+- Default keyword search in both frameworks finds a relevant document for one question
+  fewer than my tuned BM25 (Hit@5 0.853 vs 0.882), but they differ in ranking quality.
+- LlamaIndex hybrid essentially matches my reciprocal-rank-fusion version.
+- With 34 questions, one question changes Hit@5 by 0.029, so small gaps are not conclusive.
+- The result: a from-scratch pipeline that I measured performs on par with two standard
+  frameworks. The frameworks save code, not retrieval quality.
+
+Run it with `pip install -r requirements-llamaindex.txt` and `python src/llamaindex_version.py`.
+
 ## Answer generation and safety
 
 `answer.py` constrains the model to the retrieved sources and does not rely on the model alone for safety:
@@ -111,6 +136,60 @@ Run it with `pip install -r requirements-langchain.txt` and `python src/langchai
 - Code-level checks (independent of the model): citations that point to non-existent sources are flagged; sentences with no citation are flagged; a fixed "not medical advice, see a doctor" note is always printed; a fixed notice is printed for questions about curing, treating, or medication; an emergency notice (911 / 988) is printed for emergency wording.
 - Code-level guards that replace the model's answer: an answer with no valid citation becomes "I could not find this in the JSJ library."; an answer that claims JSJ cures, treats, heals, or "is effective for" something is withheld, and only the retrieved passages are shown. The page tells the user when this happened.
 - Small Sources excerpts (40 words) with a link to the original article, so the page does not reproduce the articles.
+
+## Independent evaluation questions
+
+I wrote my own 34 retrieval questions and 17 answer questions after reading the documents,
+so they are biased toward the documents' wording. To test this, someone who had not read the
+documents wrote 22 questions (7 + 15, one duplicate removed). I labeled them against the
+library (`eval/independent_questions.csv`, `eval/independent_answer_questions.csv`).
+
+**Retrieval (K=5)**
+
+| Question set | Method | Hit@5 | MRR |
+|---|---|---|---|
+| My questions (34) | bm25 / dense / hybrid | 0.882 / 0.912 / 0.941 | 0.815 / 0.770 / 0.809 |
+| Independent (20) | bm25 / dense / hybrid | 0.850 / 0.900 / 0.900 | 0.585 / 0.679 / 0.738 |
+
+Hit@5 barely moves, but keyword search ranks the right chunk much lower (MRR 0.815 to 0.585).
+Hybrid held up best. Two questions had no relevant chunk in the library, so only the answer
+evaluation uses them.
+
+**Answer quality (llama3.2, 22 questions)**
+
+| Check | Result |
+|---|---|
+| Answerable questions answered | 19/19 |
+| Key fact present | 18/19 |
+| Citations valid | 22/22 |
+| Cited source supports the answer | 17/20 |
+| Every sentence cited | 16/22 |
+| Safe wording | 21/22 |
+| Out-of-scope questions refused by the model | 0/2 |
+
+I then read every answer by hand: **16 of 22 acceptable, 6 with a real problem.**
+The automatic checks flagged 8 answers: 4 real errors and 4 false alarms. They missed 2 real errors.
+
+The real problems were of three kinds:
+- A claim the cited chunk does not make. "Panic attacks" was tied to the index finger, which
+  the source gives for fear; emotions were said to "cause" physical tension; a sentence about
+  meditation, exercise and healthy eating was not in the cited chunk; and the answer to the
+  acupuncture/EFT question compared JSJ with EFT tapping, which the library never mentions.
+- A different sequence presented as the Main Central Flow (the "not in the library" question,
+  which should have been refused).
+- An incomplete answer (only one of the relevant holds for fatigue).
+
+What I learned:
+- The automatic checks verify that a citation exists and points at a relevant document. They
+  cannot detect an added claim the source does not make, so reading answers by hand is needed.
+- Three answer-key labels were too narrow and I corrected them after reading the answers
+  (i02, i07, i08). The rest of the key was left unchanged, including for failed answers.
+- The safety check blocked one good answer (i02) because it matched the source's own phrase
+  "the body's ability to heal". I kept the check strict: a false alarm costs less than a
+  missed cure claim.
+- The source text still contains page-layout fragments (for example "Wea", "Con") that the
+  model copied into an answer. The cleaning step needs improving.
+- Small sample: 22 questions from one person is a first check, not a benchmark.
 
 ### Answer-quality results
 
@@ -211,4 +290,4 @@ Requires Docker Desktop and a running Ollama with `llama3.2` pulled.
 - [ ] More evaluation questions written by people who have not read the documents
 - [x] Re-implementation with LangChain for comparison (see "LangChain comparison" above)
 - [x] Docker
-- [ ] LlamaIndex comparision
+- [x] LlamaIndex comparision

@@ -62,6 +62,7 @@ HEALTH_NOTE = (
 HEALTH_WORDS = [
     "cure", "treat", "heal", "diabet", "cancer", "chemo", "medication", "medicine",
     "disease", "diagnos", "tumor", "infection", "blood pressure", "depression", "pregnan",
+    "palpitation", "panic", "anxiety", "chronic", "medical", "symptom", "pain",
 ]
 
 EMERGENCY_WORDS = [

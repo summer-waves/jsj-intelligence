@@ -146,9 +146,18 @@ def main():
                         help="Ollama model to test, e.g. qwen2.5:7b (default: the model set in answer.py)")
     parser.add_argument("--rescore", default=None,
                         help="saved results CSV whose answers are re-checked without calling the model")
+    parser.add_argument("--questions", default=None,
+                        help="questions CSV to use instead of eval/answer_questions.csv")
     args = parser.parse_args()
 
-    with open(QUESTIONS_PATH, newline="", encoding="utf-8") as f:
+    questions_path = QUESTIONS_PATH
+    suffix = ""
+    if args.questions:
+        questions_path = Path(args.questions)
+        if not questions_path.is_absolute():
+            questions_path = ROOT / questions_path
+        suffix = "_" + questions_path.stem
+    with open(questions_path, newline="", encoding="utf-8") as f:
         questions = list(csv.DictReader(f))
     if args.limit:
         questions = questions[:args.limit]
@@ -178,7 +187,7 @@ def main():
     if args.model:
         answer_module.MODEL = args.model   # ask_ollama() reads this setting at call time
     model = answer_module.MODEL
-    results_path = ROOT / "eval" / f"answer_results_{re.sub(r'[^A-Za-z0-9.]+', '_', model)}.csv"
+    results_path = ROOT / "eval" / f"answer_results_{re.sub(r'[^A-Za-z0-9.]+', '_', model)}{suffix}.csv"
     print(f"Model: {model}. {len(questions)} questions, retrieval={method}. "
           f"Each answer takes a while on a laptop CPU.\n")
 

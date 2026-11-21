@@ -42,8 +42,8 @@ def split_list(cell):
     return [x.strip().lower() for x in cell.split(";") if x.strip()]
 
 
-def load_questions():
-    with open(QUESTIONS_PATH, newline="", encoding="utf-8") as f:
+def load_questions(path=None):
+    with open(path or QUESTIONS_PATH, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     for r in rows:
         r["relevant_docs"] = set(split_list(r["relevant_docs"]))
@@ -88,11 +88,21 @@ def main():
     parser.add_argument("--k", type=int, default=5, help="how many chunks each method returns")
     parser.add_argument("--methods", nargs="+", default=["bm25", "dense", "hybrid"],
                         choices=["bm25", "dense", "hybrid"])
+    parser.add_argument("--questions", default=None,
+                        help="questions CSV to use instead of eval/questions.csv")
     args = parser.parse_args()
     k = args.k
 
+    questions_path = None
+    results_path = RESULTS_PATH
+    if args.questions:
+        questions_path = Path(args.questions)
+        if not questions_path.is_absolute():
+            questions_path = ROOT / questions_path
+        results_path = ROOT / "eval" / f"results_{questions_path.stem}.csv"
+
     chunks = load_chunks()
-    questions = load_questions()
+    questions = load_questions(questions_path)
 
     # Check the answer key first: a question with no relevant chunk can never be answered,
     # so it would unfairly count against every method.
@@ -176,12 +186,12 @@ def main():
             print(f"  {q['question_id']} [{q['type']}] {q['question']}")
 
     # ---- save per-question results
-    RESULTS_PATH.parent.mkdir(exist_ok=True)
-    with open(RESULTS_PATH, "w", newline="", encoding="utf-8") as f:
+    results_path.parent.mkdir(exist_ok=True)
+    with open(results_path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader()
         w.writerows(rows)
-    print(f"\nPer-question results saved to {RESULTS_PATH.relative_to(ROOT)}")
+    print(f"\nPer-question results saved to {results_path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+question_id,question,type,relevant_docs,must_contain,answer_contains,expect_refusal
+i01,Which finger should I use for heart palpitations?,answerable,jsj_002;jsj_009,palpitation,little,no
+i02,How can Jin Shin Jyutsu benefit for overall health and wellness?,answerable,jsj_004;jsj_005;jsj_006;jsj_008;jsj_014;jsj_015,,stress|relax|wellbeing|well-being|balance,no
+i03,Can you elaborate on the mystique of how JSJ is performed?,answerable,jsj_005;jsj_006;jsj_014;jsj_015,clothing,clothing|clothed|hands|fingers|touch,no
+i04,Which finger should I use for fear?,answerable,jsj_003;jsj_004;jsj_007;jsj_009,index,index,no
+i05,Which finger should I use for chronic anxiety?,answerable,jsj_001;jsj_003;jsj_007,anxiety,index|little|sel 17|safety energy lock 17,no
+i06,Which finger should I use for panic attacks?,answerable,jsj_001,panic,little|sel 17|safety energy lock 17|wrist,no
+i07,Can you explain on each functional habits on why JSJ fights off the weakness of mental health pain and other things that can improve one's living being?,medical,jsj_004;jsj_008;jsj_009;jsj_014;jsj_015,,,no
+i08,"What is the core philosophy behind Jin Shin Jyutsu, and how does it describe harmonizing the body's energy?",answerable,jsj_004;jsj_005;jsj_006;jsj_008;jsj_014,harmon,harmon|energy,no
+i09,"How does Jin Shin Jyutsu differ from acupuncture, acupressure, massage, or EFT tapping?",answerable,jsj_004;jsj_005;jsj_008;jsj_015,acupuncture,acupuncture,no
+i10,"What are Safety Energy Locks, and how do they function in a session?",answerable,jsj_005;jsj_006;jsj_014,safety energy lock,26|circuit|energy site|energy,no
+i11,"How does Jin Shin Jyutsu view the relationship between specific emotions (like worry, fear, or anger) and physical tension?",answerable,jsj_004;jsj_007;jsj_009;jsj_013,anger,finger|hold,no
+i12,"What role does light, sustained touch play compared to firm pressure or movement?",answerable,jsj_005;jsj_006;jsj_008;jsj_015,pressure,light|gentle|no pressure|pressure,no
+i13,How do you practice Jin Shin Jyutsu Self-Help at home using only your hands?,answerable,jsj_004;jsj_006;jsj_007,hold,hold|finger,no
+i14,"Which emotions are paired with each finger in finger holds, and how do you hold them?",answerable,jsj_004;jsj_007;jsj_009,grief,worry;fear;anger;grief|sadness,no
+i15,What are the hand positions in the Main Central Flow sequence from head to torso?,out_of_scope,,,,yes
+i16,"How long should you hold a point or finger during a self-help session, and what sensations (such as warmth or pulsation) might you notice?",answerable,jsj_006;jsj_009,minutes,minute,no
+i17,"Which simple self-help holds are commonly used for everyday stress, fatigue, or mental overwhelm?",answerable,jsj_009;jsj_011,fatigue,finger|sel 25|safety energy lock|palm,no
+i18,What happens during a one-on-one session with a certified Jin Shin Jyutsu practitioner?,answerable,jsj_005;jsj_006;jsj_014;jsj_015,practitioner,clothed|clothing|lie|lying|hour|listen,no
+i19,How do practitioners use pulse listening or energy flow patterns to choose which points to hold?,answerable,jsj_014;jsj_015,pulse,pulse|wrist,no
+i20,What kind of training or certification is required to practice Jin Shin Jyutsu professionally?,out_of_scope,,,,yes
+i21,"What can someone expect in terms of session length, clothing, and physical comfort during a treatment?",answerable,jsj_005;jsj_014;jsj_015,hour,hour,no
+i22,How can Jin Shin Jyutsu be used alongside conventional medical care or other wellness routines?,answerable,jsj_006;jsj_014;jsj_015,complement,complement|conventional|medication,no
