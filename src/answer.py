@@ -1,18 +1,3 @@
-"""
-answer.py - Step 5 of the JSJ Intelligence pipeline.
-
-Answers a question about Jin Shin Jyutsu using ONLY the document library:
-    1. finds the best chunks (hybrid search from retrieval.py)
-    2. gives those chunks to a local Ollama model, with strict rules
-    3. prints the answer, then a list of the sources that were actually retrieved
-    4. adds a fixed safety note that does not depend on what the model says
-
-Run it from the project folder (Ollama must be running, and llama3.2 downloaded):
-    python src/answer.py "Which finger do I hold for fear?"
-    python src/answer.py                      (no question = ask questions in a loop)
-    python src/answer.py "..." --show-context (also prints the chunks the model saw)
-"""
-
 import argparse
 import json
 import os
