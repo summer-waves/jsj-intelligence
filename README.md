@@ -245,25 +245,6 @@ The same 17 questions, same retrieval, two local models (CPU only, 11.8 GB RAM l
 ![Retrieval comparison with LlamaIndex](docs/screenshots/04_llamaindex_comparison.png)
 ![Retrieval on independent questions](docs/screenshots/05_independent_retrieval.png)
 
-
-## Run it
-
-Requirements: Python 3.11, [Ollama](https://ollama.com) with `llama3.2` pulled (`ollama pull llama3.2`).
-
-```
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-
-python src/ingest.py       # PDFs in data/raw  -> data/clean
-python src/chunk.py        # data/clean        -> data/chunks/chunks.jsonl
-python src/evaluate.py     # retrieval metrics
-python src/answer.py "Which finger do I hold for fear?"
-python src/eval_answers.py # answer-quality checks (about 10 minutes)
-python src/eval_answers.py --rescore eval/answer_results.csv   # re-check saved answers in seconds
-streamlit run app.py       # chat page at http://localhost:8501
-```
-
 ## Data and copyright
 
 The source PDFs are web articles that are mostly "All rights reserved" and are used here privately. **They are not included in this repository** (`data/raw`, `data/clean` and `data/chunks` are git-ignored). `data/source_log.csv` records each document's title, author, URL and reuse status. To reproduce the project, collect your own documents and list them in the source log and in `FILENAME_TO_DOC_ID` in `src/ingest.py`.
