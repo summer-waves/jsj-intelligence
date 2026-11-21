@@ -1,11 +1,3 @@
-"""
-app.py - Step 6 of the JSJ Intelligence pipeline: the chat page.
-
-Start it from the project folder with:
-    streamlit run app.py
-A browser tab opens at http://localhost:8501. Ollama must be running.
-"""
-
 import sys
 from pathlib import Path
 
