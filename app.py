@@ -19,8 +19,6 @@ def get_retriever():
     return retriever, method
 
 
-retriever, method = get_retriever()
-
 if not CHUNKS_PATH.exists():
     st.title("JSJ Intelligence")
     st.info(
@@ -40,6 +38,8 @@ if not CHUNKS_PATH.exists():
             st.image(str(shots / name), caption=caption)
     st.markdown("[View the code on GitHub](https://github.com/summer-waves/jsj-intelligence)")
     st.stop()
+
+retriever, method = get_retriever()
 
 st.title("JSJ Intelligence")
 st.caption(
