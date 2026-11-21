@@ -1,18 +1,3 @@
-"""
-answer.py - Step 5 of the JSJ Intelligence pipeline.
-
-Answers a question about Jin Shin Jyutsu using ONLY the document library:
-    1. finds the best chunks (hybrid search from retrieval.py)
-    2. gives those chunks to a local Ollama model, with strict rules
-    3. prints the answer, then a list of the sources that were actually retrieved
-    4. adds a fixed safety note that does not depend on what the model says
-
-Run it from the project folder (Ollama must be running, and llama3.2 downloaded):
-    python src/answer.py "Which finger do I hold for fear?"
-    python src/answer.py                      (no question = ask questions in a loop)
-    python src/answer.py "..." --show-context (also prints the chunks the model saw)
-"""
-
 import argparse
 import json
 import os
@@ -23,10 +8,12 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from retrieval import BM25Retriever, HybridRetriever, load_chunks  # noqa: E402
+from retrieval import CHUNKS_PATH, BM25Retriever, HybridRetriever, load_chunks  # noqa: E402
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
-MODEL = os.environ.get("JSJ_MODEL", "llama3.2")  # change with: $env:JSJ_MODEL = "qwen2.5:7b"
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY")
+HOSTED_MODEL = os.environ.get("JSJ_HOSTED_MODEL", "claude-haiku-5-5")
+MODEL = HOSTED_MODEL if ANTHROPIC_KEY else os.environ.get("JSJ_MODEL", "llama3.2")  # local: $env:JSJ_MODEL = "qwen2.5:7b"
 TOP_K = 5
 
 SYSTEM_RULES = """You are JSJ Intelligence, an assistant that answers questions about Jin Shin Jyutsu (JSJ) using ONLY the numbered SOURCES provided in the user's message.
@@ -94,7 +81,33 @@ def build_prompt(question, results):
     return "SOURCES:\n\n" + "\n\n".join(sources) + f"\n\nQUESTION: {question}"
 
 
+def ask_hosted(prompt):
+    body = {
+        "model": MODEL,
+        "max_tokens": 2000,  # room for the model's own reasoning plus a short answer
+        "system": SYSTEM_RULES,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages", data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY,
+                 "anthropic-version": "2023-06-01"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            blocks = json.loads(resp.read().decode("utf-8"))["content"]
+    except urllib.error.URLError as e:
+        raise OllamaError(f"Could not get an answer from the hosted model ({e}).")
+    # The reply is a list of blocks. Some are the model's reasoning ("thinking"); only "text" blocks are the answer.
+    text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text").strip()
+    if not text:
+        raise OllamaError("The hosted model returned no answer text. Please try again.")
+    return text
+
+
 def ask_ollama(prompt):
+    if ANTHROPIC_KEY:
+        return ask_hosted(prompt)
     body = {
         "model": MODEL,
         "stream": False,
@@ -118,6 +131,7 @@ def ask_ollama(prompt):
 
 # A citation is a square bracket holding one or more source numbers: [2]   [1, 2, 5]   [1][2]
 CITATION = re.compile(r"\[\s*(\d+(?:\s*[,;]\s*\d+)*)\s*\]")
+CITATION_AFTER_STOP = re.compile(r"([.!?])\s*((?:\[\s*\d+(?:\s*[,;]\s*\d+)*\s*\]\s*)+)")
 
 
 def check_citations(answer, n_sources):
@@ -151,13 +165,54 @@ def safe_wording(answer):
     return True
 
 
+# ----------------------------------------------------------------------------
+# Demo mode: when the private JSJ library is not on this computer (for example on Streamlit Cloud),
+# the app uses the public-domain demo library (NIH NCCIH pages). The wording below is adjusted for it.
+# On a computer that has the private library, none of this runs and everything above is unchanged.
+# ----------------------------------------------------------------------------
+DEMO = not CHUNKS_PATH.exists()
+
+if DEMO:
+    SYSTEM_RULES = """You are a demo assistant that answers questions about relaxation techniques, stress, anxiety, yoga, massage and other mind-body practices using ONLY the numbered SOURCES provided in the user's message. The SOURCES are public pages from the U.S. National Center for Complementary and Integrative Health (NCCIH).
+
+Rules you must follow:
+1. Use only information found in the SOURCES. Do not use outside knowledge. Do not guess.
+2. After every sentence that uses a source, add its number in square brackets, for example [2]. Use only the numbers of the SOURCES given.
+3. Begin the answer with "According to the NCCIH pages in the library," or a similar phrase. Report what the sources say, including how strong the evidence is. Never state a practice as a proven medical treatment.
+4. Never say a practice cures, treats, or heals a disease, and never tell the person to stop or avoid medical care. If the sources say the evidence is limited or low quality, say so.
+5. If the SOURCES do not contain the answer, reply exactly: "I could not find this in the JSJ library." Do not say anything else.
+6. Keep the answer short: at most 5 sentences."""
+    SAFETY_NOTE = (
+        "Note: This summarizes public NIH (NCCIH) pages. It is not medical advice. If you have "
+        "symptoms, pain, or a health condition, please see a doctor or other qualified health professional."
+    )
+    HEALTH_NOTE = (
+        "IMPORTANT: This demo only summarizes what the library pages say. It does not tell you what to "
+        "do about a medical condition. Please keep following the treatment your doctor recommends."
+    )
+    CLAIM = re.compile(r"\b(cure[sd]?|heal[s]?|treat[s]?)\b", re.I)  # demo: hedged NIH wording like "effective for" is allowed
+
+
+def display_text(text):
+    """In demo mode, the fixed refusal and safety messages must not mention the private JSJ library."""
+    if not DEMO:
+        return text
+    return (text.replace("I could not find this in the JSJ library.", "I could not find this in the demo library.")
+                .replace("claims JSJ cures or treats a condition", "claims a practice cures or treats a condition")
+                .replace("The JSJ library does not show that Jin Shin Jyutsu cures or treats any medical condition.",
+                         "The library does not show that any practice cures or treats a medical condition."))
+
+
 def analyze(answer, n_sources):
     """Citation facts about an answer text: numbers used, invalid numbers, uncited sentences, refused?"""
     used, invalid = check_citations(answer, n_sources)
     refused = "could not find this in the jsj library" in answer.lower()
     uncited = []
     if not refused and used:
-        sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", answer) if x.strip()]
+        # Some models write the citation AFTER the full stop ("... for fear. [1][2]"). Move it in front of the
+        # full stop, so the citation stays with its own sentence instead of the next one.
+        tidy = CITATION_AFTER_STOP.sub(lambda m: " " + m.group(2).strip() + m.group(1) + " ", answer)
+        sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", tidy) if x.strip()]
         uncited = [x for x in sentences if not CITATION.search(x)]
     return used, invalid, uncited, refused
 
@@ -187,9 +242,9 @@ def get_answer(question, retriever):
 
     return {
         "question": question,
-        "answer": answer,
+        "answer": display_text(answer),
         "raw_answer": raw_answer,   # what the model actually wrote
-        "withheld": withheld,       # None, or the reason the answer was replaced
+        "withheld": display_text(withheld) if withheld else withheld,  # None, or the reason the answer was replaced
         "results": results,
         "used": used,
         "invalid": invalid,

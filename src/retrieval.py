@@ -1,21 +1,3 @@
-"""
-retrieval.py - Step 3 of the JSJ Intelligence pipeline.
-
-Finds the chunks (made by chunk.py) that best match a question, in two ways:
-
-  bm25   Keyword search. Scores chunks by how many of the question's words they
-         contain, giving more weight to rare words. Written from scratch below.
-  dense  Meaning search. An embedding model turns every chunk and the question
-         into a list of numbers (a vector); the chunks whose vectors point in
-         the most similar direction to the question's vector win.
-
-Run it from the project folder, for example:
-    python src/retrieval.py "Where is Safety Energy Lock 17 located?"
-    python src/retrieval.py "Which finger helps with fear?" --method dense --k 3
-
-Other scripts (the evaluation in step 4) import the two classes from this file.
-"""
-
 import argparse
 import json
 import math
@@ -29,30 +11,23 @@ import numpy as np
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CHUNKS_DIR = PROJECT_ROOT / "data" / "chunks"
 CHUNKS_PATH = CHUNKS_DIR / "chunks.jsonl"
+DEMO_CHUNKS_PATH = PROJECT_ROOT / "demo" / "chunks.jsonl"  # public-domain demo library (committed)
 EMBEDDINGS_PATH = CHUNKS_DIR / "embeddings.npy"
 EMBEDDINGS_META_PATH = CHUNKS_DIR / "embeddings_meta.json"
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
-
-# ----------------------------------------------------------------------------
-# Shared helpers
-# ----------------------------------------------------------------------------
 def load_chunks():
-    """Read data/chunks/chunks.jsonl into a list of dictionaries."""
-    with open(CHUNKS_PATH, encoding="utf-8") as f:
+    path = CHUNKS_PATH if CHUNKS_PATH.exists() else DEMO_CHUNKS_PATH
+    with open(path, encoding="utf-8") as f:
         return [json.loads(line) for line in f]
 
 
 def chunk_text(chunk):
-    """The text we search: the document title plus the chunk itself.
-    Adding the title tells the search which article a passage comes from."""
     return f"{chunk['title']}. {chunk['text']}"
 
 
 class Retriever:
-    """Base class: subclasses only have to provide scores(query)."""
-
     name = "base"
     min_score = None  # results scoring at or below this are dropped
 
@@ -63,7 +38,6 @@ class Retriever:
         raise NotImplementedError
 
     def search(self, query, k=5):
-        """Return the k best chunks for a query, best first."""
         scores = self.scores(query)
         results = []
         for rank, i in enumerate(np.argsort(-scores)[:k], start=1):
@@ -81,10 +55,6 @@ class Retriever:
             })
         return results
 
-
-# ----------------------------------------------------------------------------
-# Keyword search: BM25
-# ----------------------------------------------------------------------------
 STOPWORDS = set(
     "a an and are as at be but by for from has have how i in is it its of on or "
     "that the their this to was were what when where which who why will with you your "
@@ -93,7 +63,6 @@ STOPWORDS = set(
 
 
 def stem(word):
-    """Very simple stemmer so 'holding', 'holds' and 'hold' count as the same word."""
     for suffix in ("ing", "ed", "es", "s"):
         if word.endswith(suffix) and len(word) - len(suffix) >= 3:
             return word[: -len(suffix)]
@@ -101,7 +70,6 @@ def stem(word):
 
 
 def tokenize(text):
-    """Lowercase, split into words, drop common filler words, apply the stemmer."""
     words = re.findall(r"[a-z0-9]+", text.lower())
     return [stem(w) for w in words if w not in STOPWORDS]
 
@@ -139,10 +107,6 @@ class BM25Retriever(Retriever):
                     scores[i] += self.idf[term] * f * (self.k1 + 1) / (f + self.k1 * length_factor)
         return scores
 
-
-# ----------------------------------------------------------------------------
-# Meaning search: embeddings
-# ----------------------------------------------------------------------------
 class DenseRetriever(Retriever):
     name = "dense"
 
@@ -157,7 +121,6 @@ class DenseRetriever(Retriever):
         self.embeddings = self._load_or_build_embeddings()
 
     def _load_or_build_embeddings(self):
-        """Embed every chunk once and save the result, so later runs start instantly."""
         expected = {"model": self.model_name, "chunk_ids": [c["chunk_id"] for c in self.chunks]}
         if EMBEDDINGS_PATH.exists() and EMBEDDINGS_META_PATH.exists():
             saved = json.loads(EMBEDDINGS_META_PATH.read_text(encoding="utf-8"))
@@ -171,6 +134,7 @@ class DenseRetriever(Retriever):
             normalize_embeddings=True,  # unit-length vectors: dot product = cosine similarity
             show_progress_bar=True,
         )
+        EMBEDDINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
         np.save(EMBEDDINGS_PATH, embeddings)
         EMBEDDINGS_META_PATH.write_text(json.dumps(expected), encoding="utf-8")
         return embeddings
@@ -180,13 +144,7 @@ class DenseRetriever(Retriever):
         return self.embeddings @ query_vector  # cosine similarity with every chunk
 
 
-# ----------------------------------------------------------------------------
-# Hybrid search: BM25 + embeddings combined with reciprocal rank fusion (RRF)
-# ----------------------------------------------------------------------------
 class HybridRetriever(Retriever):
-    """Each method ranks every chunk. A chunk earns 1 / (rrf_k + rank) from each method
-    that ranks it, and the earned amounts are added up. A chunk that is high in both
-    lists wins; a chunk that is first in only one list still scores well."""
 
     name = "hybrid"
 
@@ -205,10 +163,6 @@ class HybridRetriever(Retriever):
                 fused[i] += 1.0 / (self.rrf_k + rank)
         return fused
 
-
-# ----------------------------------------------------------------------------
-# Command line
-# ----------------------------------------------------------------------------
 def print_results(label, results):
     print(f"\n=== {label} ===")
     if not results:
