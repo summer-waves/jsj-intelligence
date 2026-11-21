@@ -238,6 +238,14 @@ The same 17 questions, same retrieval, two local models (CPU only, 11.8 GB RAM l
 
 **Decision.** The project keeps `llama3.2` as the default because it is about 27% faster and equal or better on most checks. To try another model: `$env:JSJ_MODEL = "qwen2.5:7b"` (PowerShell) before `streamlit run app.py`, or `python src/eval_answers.py --model qwen2.5:7b`.
 
+## Screenshots of the work
+
+![The chat page answering a question](docs/screenshots/01_chat_answer.png)
+![Retrieval comparison with LangChain](docs/screenshots/03_langchain_comparison.png)
+![Retrieval comparison with LlamaIndex](docs/screenshots/04_llamaindex_comparison.png)
+![Retrieval on independent questions](docs/screenshots/05_independent_retrieval.png)
+
+
 ## Run it
 
 Requirements: Python 3.11, [Ollama](https://ollama.com) with `llama3.2` pulled (`ollama pull llama3.2`).
