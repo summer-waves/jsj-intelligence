@@ -6,11 +6,9 @@ The goal of the project is to build each part of a RAG pipeline from scratch (in
 
 > **Not medical advice.** The assistant reports what the JSJ teachings in the library say. It does not claim that JSJ treats or cures any condition, and the library is not scientific evidence. Anyone with symptoms should see a doctor.
 
-
 **Live demo:** https://jsj-intelligence-hatkxbqfauvmjm5tfyj5pk.streamlit.app/
 
-The public demo answers from five public-domain NIH (NCCIH) pages on relaxation, stress, anxiety, yoga and massage, using a hosted model (Claude Haiku). My private Jin Shin Jyutsu library is not published because the source articles are not mine to share, so the full JSJ version runs locally.
-
+The public demo answers from five public-domain NIH (NCCIH) pages on relaxation, stress, anxiety, yoga and massage, using a hosted model (Claude Haiku). My private Jin Shin Jyutsu library is not published because the source articles are not mine to share, so the full JSJ version runs locally. The demo uses the same pipeline (chunking, hybrid retrieval, citation checks and safety guards); only the library and the model differ.
 
 ## How it works
 
@@ -19,7 +17,7 @@ PDF articles --> ingest.py --> clean text --> chunk.py --> chunks.jsonl
                                                               |
 question --> retrieval.py (BM25 + embeddings, fused) --> top 5 chunks
                                                               |
-                          answer.py --> local LLM (Ollama) --> cited answer + safety notes
+                          answer.py --> LLM (local Ollama or hosted Claude) --> cited answer + safety notes
 ```
 
 | Step | File | What it does |
@@ -28,9 +26,10 @@ question --> retrieval.py (BM25 + embeddings, fused) --> top 5 chunks
 | 2 | `src/chunk.py` | Splits each document into sentence-based chunks of up to 180 words with 35 words of overlap. Headings stay with the text that follows them. 80 chunks in total. |
 | 3 | `src/retrieval.py` | Three retrievers: **BM25** (keyword search written from scratch), **dense** (sentence-transformers `all-MiniLM-L6-v2` embeddings), and **hybrid** (reciprocal rank fusion of the two). |
 | 4 | `src/evaluate.py` | Scores each retriever on `eval/questions.csv`: Hit@K, Precision@K, Recall@K, MRR, latency. |
-| 5 | `src/answer.py` | Sends the top chunks to a local Ollama model (`llama3.2`) with strict rules, checks the citations, and adds fixed safety notes. |
+| 5 | `src/answer.py` | Sends the top chunks to a language model (local Ollama `llama3.2` by default, or hosted Claude Haiku when an API key is set) with strict rules, checks the citations, and adds fixed safety notes. |
 | 5b | `src/eval_answers.py` | Runs 17 questions through the whole pipeline and checks the answers: correct fact, valid and supported citations, correct refusals, safe wording. |
-| 6 | `app.py` | Streamlit chat page: cited answers, short source excerpts with links, safety notes and warnings. |
+| 6 | `app.py` | Streamlit chat page: cited answers, short source excerpts with links, safety notes and warnings. Switches to a public demo mode when the private library is not present. |
+| 7 | `src/build_demo.py` | Builds `demo/chunks.jsonl` (95 chunks) from the five public NIH pages in `demo/raw`, listed in `demo/sources.csv`. |
 
 ## Retrieval results
 
@@ -143,6 +142,53 @@ Run it with `pip install -r requirements-llamaindex.txt` and `python src/llamain
 - Code-level guards that replace the model's answer: an answer with no valid citation becomes "I could not find this in the JSJ library."; an answer that claims JSJ cures, treats, heals, or "is effective for" something is withheld, and only the retrieved passages are shown. The page tells the user when this happened.
 - Small Sources excerpts (40 words) with a link to the original article, so the page does not reproduce the articles.
 
+## Answer-quality results
+
+17 questions (`eval/answer_questions.csv`): 10 answerable, 3 medical, 4 out of scope. Checks are simple automatic rules. Local model `llama3.2` (3B) on a laptop CPU, about 42 seconds per answer.
+
+| Check (model's own answer) | Answerable | Medical | Out of scope |
+|---|---|---|---|
+| Answers or refuses correctly | 10/10 | - | 2/4 |
+| Contains the expected fact | 10/10 | - | - |
+| Citations valid | 10/10 | 3/3 | 1/2 |
+| A cited chunk supports the answer | 9/10 | - | - |
+| Every sentence cited | 8/10 | 0/3 | 2/2 |
+| No cure/treat claim | 10/10 | 2/3 | 4/4 |
+| Starts with "According to" | 10/10 | 3/3 | 1/2 |
+
+With the code-level guards, 2 of 17 answers were replaced (a sourdough answer with no citation, and a diabetes answer that overstated a source), and 3 of 4 out-of-scope questions ended as a refusal.
+
+**Findings**
+- Prompt rules alone were not reliable for a 3B model: it answered a cooking question from its own knowledge and, on the diabetes question, phrased one practitioner's personal report as an effect. Moving these rules into code fixed both cases.
+- The "every sentence cited" check is strict. On medical questions the uncited sentence is probably a "see a doctor" sentence, which does not need a citation.
+- One out-of-scope question (acupuncture needle placement) is borderline, because the library mentions acupuncture only as a comparison.
+- An early version of the citation checker read only single citations such as `[2]`, and wrongly failed answers that cite `[1, 2]`. This was found by reading the saved answers, fixed, and all results were re-scored (the numbers above are the corrected ones). Automatic checks on model output need to be read by hand at least once.
+- Results vary slightly between runs, and 17 questions is a small sample.
+
+## Model comparison
+
+The same 17 questions, same retrieval, two local models (CPU only, 11.8 GB RAM laptop). Checks judge the model's own answer; the guards are then applied.
+
+| | `llama3.2` (3B) | `qwen2.5:7b` |
+|---|---|---|
+| Out-of-scope refused by the model itself | 2/4 | **4/4** |
+| Out-of-scope ending as a refusal (after guards) | 3/4 | **4/4** |
+| Answerable questions answered (after guards) | 10/10 | 10/10 |
+| Expected fact present | **10/10** | 9/10 |
+| Citations valid (answerable) | 10/10 | 10/10 |
+| A cited chunk supports the answer | 9/10 | 9/10 |
+| Every sentence cited (answerable) | **8/10** | 6/10 |
+| No cure/treat claim (medical) | **2/3** | 1/3 |
+| Answers replaced by the guards | 2 of 17 | 2 of 17 |
+| Mean seconds per answer | **42** | 58 |
+
+**Findings**
+- The larger model refused every out-of-scope question on its own, while the 3B model needed the guard for one of them. The larger model was also slower, cited fewer of its sentences, and made more cure/treat-style claims on the medical questions.
+- With the guards in place both models behave acceptably, so the guards matter more than model size here. The only end-to-end difference is one borderline out-of-scope question (acupuncture).
+- 17 questions and one run per model is a small sample and the models are not fully deterministic, so these are indications, not rankings.
+
+**Decision.** The project keeps `llama3.2` as the default because it is about 27% faster and equal or better on most checks. To try another model: `$env:JSJ_MODEL = "qwen2.5:7b"` (PowerShell) before `streamlit run app.py`, or `python src/eval_answers.py --model qwen2.5:7b`.
+
 ## Independent evaluation questions
 
 I wrote my own 34 retrieval questions and 17 answer questions after reading the documents,
@@ -197,52 +243,18 @@ What I learned:
   model copied into an answer. The cleaning step needs improving.
 - Small sample: 22 questions from one person is a first check, not a benchmark.
 
-### Answer-quality results
+## Running it
 
-17 questions (`eval/answer_questions.csv`): 10 answerable, 3 medical, 4 out of scope. Checks are simple automatic rules. Local model `llama3.2` (3B) on a laptop CPU, about 42 seconds per answer.
+- **Local, private library (needs your own documents and Ollama):** `ollama pull llama3.2`, then `streamlit run app.py`.
+- **Hosted model:** set the key in your terminal session before starting, for example in PowerShell `$env:ANTHROPIC_API_KEY = "..."`. The app then uses `claude-haiku-5-5` (change it with `JSJ_HOSTED_MODEL`). The key is never stored in the repository. On Streamlit Community Cloud it is kept in the app's Secrets.
+- **Public demo mode:** starts automatically when the private chunk file (`data/chunks/chunks.jsonl`) is missing, and answers from `demo/chunks.jsonl` instead. Rebuild it with `python src/build_demo.py`.
 
-| Check (model's own answer) | Answerable | Medical | Out of scope |
-|---|---|---|---|
-| Answers or refuses correctly | 10/10 | - | 2/4 |
-| Contains the expected fact | 10/10 | - | - |
-| Citations valid | 10/10 | 3/3 | 1/2 |
-| A cited chunk supports the answer | 9/10 | - | - |
-| Every sentence cited | 8/10 | 0/3 | 2/2 |
-| No cure/treat claim | 10/10 | 2/3 | 4/4 |
-| Starts with "According to" | 10/10 | 3/3 | 1/2 |
+## Limitations and next steps
 
-With the code-level guards, 2 of 17 answers were replaced (a sourdough answer with no citation, and a diabetes answer that overstated a source), and 3 of 4 out-of-scope questions ended as a refusal.
-
-**Findings**
-- Prompt rules alone were not reliable for a 3B model: it answered a cooking question from its own knowledge and, on the diabetes question, phrased one practitioner's personal report as an effect. Moving these rules into code fixed both cases.
-- The "every sentence cited" check is strict. On medical questions the uncited sentence is probably a "see a doctor" sentence, which does not need a citation.
-- One out-of-scope question (acupuncture needle placement) is borderline, because the library mentions acupuncture only as a comparison.
-- An early version of the citation checker read only single citations such as `[2]`, and wrongly failed answers that cite `[1, 2]`. This was found by reading the saved answers, fixed, and all results were re-scored (the numbers above are the corrected ones). Automatic checks on model output need to be read by hand at least once.
-- Results vary slightly between runs, and 17 questions is a small sample.
-
-### Model comparison
-
-The same 17 questions, same retrieval, two local models (CPU only, 11.8 GB RAM laptop). Checks judge the model's own answer; the guards are then applied.
-
-| | `llama3.2` (3B) | `qwen2.5:7b` |
-|---|---|---|
-| Out-of-scope refused by the model itself | 2/4 | **4/4** |
-| Out-of-scope ending as a refusal (after guards) | 3/4 | **4/4** |
-| Answerable questions answered (after guards) | 10/10 | 10/10 |
-| Expected fact present | **10/10** | 9/10 |
-| Citations valid (answerable) | 10/10 | 10/10 |
-| A cited chunk supports the answer | 9/10 | 9/10 |
-| Every sentence cited (answerable) | **8/10** | 6/10 |
-| No cure/treat claim (medical) | **2/3** | 1/3 |
-| Answers replaced by the guards | 2 of 17 | 2 of 17 |
-| Mean seconds per answer | **42** | 58 |
-
-**Findings**
-- The larger model refused every out-of-scope question on its own, while the 3B model needed the guard for one of them. The larger model was also slower, cited fewer of its sentences, and made more cure/treat-style claims on the medical questions.
-- With the guards in place both models behave acceptably, so the guards matter more than model size here. The only end-to-end difference is one borderline out-of-scope question (acupuncture).
-- 17 questions and one run per model is a small sample and the models are not fully deterministic, so these are indications, not rankings.
-
-**Decision.** The project keeps `llama3.2` as the default because it is about 27% faster and equal or better on most checks. To try another model: `$env:JSJ_MODEL = "qwen2.5:7b"` (PowerShell) before `streamlit run app.py`, or `python src/eval_answers.py --model qwen2.5:7b`.
+- All answer-quality numbers in this README were measured with the local models (`llama3.2`, `qwen2.5:7b`). The hosted model used by the live demo has not been run through this evaluation, and the five-page demo library has no labeled question set of its own.
+- The question sets are small (34, 17 and 22 questions), and the independent questions come from one person. More questions from more people would make the results stronger.
+- The cleaned source text still contains some page-layout fragments, which a model once copied into an answer. The cleaning step needs improving.
+- The automatic answer checks cannot detect a claim that the cited source does not make, so answers still need to be read by hand.
 
 ## Screenshots of the work
 
@@ -253,15 +265,15 @@ The same 17 questions, same retrieval, two local models (CPU only, 11.8 GB RAM l
 
 ## Data and copyright
 
-The source PDFs are web articles that are mostly "All rights reserved" and are used here privately. **They are not included in this repository** (`data/raw`, `data/clean` and `data/chunks` are git-ignored). `data/source_log.csv` records each document's title, author, URL and reuse status. To reproduce the project, collect your own documents and list them in the source log and in `FILENAME_TO_DOC_ID` in `src/ingest.py`.
+The source PDFs are web articles that are mostly "All rights reserved" and are used here privately. **They are not included in this repository** (`data/raw`, `data/clean` and `data/chunks` are git-ignored). `data/source_log.csv` records each document's title, author, URL and reuse status. The public demo uses a separate set of five NIH National Center for Complementary and Integrative Health (NCCIH) web pages, whose text is in the public domain (images are not). These are included in `demo/`, with titles and URLs in `demo/sources.csv`. To reproduce the private project, collect your own documents and list them in the source log and in `FILENAME_TO_DOC_ID` in `src/ingest.py`.
 
 ## Tech stack
 
 - **Language:** Python 3.11
 - **AI and retrieval:** Retrieval-augmented generation (RAG), BM25 keyword search (written from scratch), sentence-transformers embeddings (all-MiniLM-L6-v2), hybrid search with reciprocal rank fusion
-- **Language models:** Ollama running llama3.2 (3B) and qwen2.5:7b, locally
+- **Language models:** Ollama running llama3.2 (3B) and qwen2.5:7b locally; Claude Haiku through the Anthropic API for the hosted demo
 - **Frameworks and libraries:** Streamlit, pdfplumber, NumPy, LangChain, LlamaIndex
 - **Evaluation:** Hit@K, Precision@K, Recall@K and MRR for retrieval; rule-based answer checks; hand grading of answers
-- **Tools:** Docker and Docker Compose, Git and GitHub, Cursor, PowerShell, virtual environments (venv)
+- **Tools:** Docker and Docker Compose, Streamlit Community Cloud, Git and GitHub, Cursor, PowerShell, virtual environments (venv)
 
-**What I built:** a document ingestion and chunking pipeline; three retrieval methods; cited, safety-guarded answer generation; a Streamlit chat interface; an evaluation framework with independent test questions; framework comparisons with LangChain and LlamaIndex; and a Docker setup.
+**What I built:** a document ingestion and chunking pipeline; three retrieval methods; cited, safety-guarded answer generation; a Streamlit chat interface with a public hosted demo; an evaluation framework with independent test questions; framework comparisons with LangChain and LlamaIndex; and a Docker setup.
