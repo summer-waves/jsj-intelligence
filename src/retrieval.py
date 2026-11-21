@@ -1,21 +1,3 @@
-"""
-retrieval.py - Step 3 of the JSJ Intelligence pipeline.
-
-Finds the chunks (made by chunk.py) that best match a question, in two ways:
-
-  bm25   Keyword search. Scores chunks by how many of the question's words they
-         contain, giving more weight to rare words. Written from scratch below.
-  dense  Meaning search. An embedding model turns every chunk and the question
-         into a list of numbers (a vector); the chunks whose vectors point in
-         the most similar direction to the question's vector win.
-
-Run it from the project folder, for example:
-    python src/retrieval.py "Where is Safety Energy Lock 17 located?"
-    python src/retrieval.py "Which finger helps with fear?" --method dense --k 3
-
-Other scripts (the evaluation in step 4) import the two classes from this file.
-"""
-
 import argparse
 import json
 import math
@@ -35,9 +17,6 @@ EMBEDDINGS_META_PATH = CHUNKS_DIR / "embeddings_meta.json"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
-# ----------------------------------------------------------------------------
-# Shared helpers
-# ----------------------------------------------------------------------------
 def load_chunks():
     """Read data/chunks/chunks.jsonl into a list of dictionaries."""
     with open(CHUNKS_PATH, encoding="utf-8") as f:
@@ -82,9 +61,6 @@ class Retriever:
         return results
 
 
-# ----------------------------------------------------------------------------
-# Keyword search: BM25
-# ----------------------------------------------------------------------------
 STOPWORDS = set(
     "a an and are as at be but by for from has have how i in is it its of on or "
     "that the their this to was were what when where which who why will with you your "
@@ -140,9 +116,6 @@ class BM25Retriever(Retriever):
         return scores
 
 
-# ----------------------------------------------------------------------------
-# Meaning search: embeddings
-# ----------------------------------------------------------------------------
 class DenseRetriever(Retriever):
     name = "dense"
 
@@ -180,9 +153,6 @@ class DenseRetriever(Retriever):
         return self.embeddings @ query_vector  # cosine similarity with every chunk
 
 
-# ----------------------------------------------------------------------------
-# Hybrid search: BM25 + embeddings combined with reciprocal rank fusion (RRF)
-# ----------------------------------------------------------------------------
 class HybridRetriever(Retriever):
     """Each method ranks every chunk. A chunk earns 1 / (rrf_k + rank) from each method
     that ranks it, and the earned amounts are added up. A chunk that is high in both
@@ -206,9 +176,6 @@ class HybridRetriever(Retriever):
         return fused
 
 
-# ----------------------------------------------------------------------------
-# Command line
-# ----------------------------------------------------------------------------
 def print_results(label, results):
     print(f"\n=== {label} ===")
     if not results:
