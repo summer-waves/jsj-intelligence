@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 from answer import (  # noqa: E402
     EMERGENCY_NOTE, HEALTH_NOTE, MODEL, SAFETY_NOTE, OllamaError, build_retriever, get_answer,
 )
-from retrieval import load_chunks  # noqa: E402
+from retrieval import CHUNKS_PATH, load_chunks  # noqa: E402
 
 st.set_page_config(page_title="JSJ Intelligence", page_icon="🖐️")
 
@@ -20,6 +20,26 @@ def get_retriever():
 
 
 retriever, method = get_retriever()
+
+if not CHUNKS_PATH.exists():
+    st.title("JSJ Intelligence")
+    st.info(
+        "This is a public preview. The assistant answers from a private library of copyrighted "
+        "articles using a language model that runs on my own computer, and neither can be "
+        "published here, so live questions are turned off. Below are screenshots of the app "
+        "and its evaluation. The code and instructions to run it yourself are on GitHub."
+    )
+    shots = Path(__file__).parent / "docs" / "screenshots"
+    for name, caption in [
+        ("01_chat_answer.png", "A cited answer"),
+        ("03_langchain_comparison.png", "My retrieval vs LangChain"),
+        ("04_llamaindex_comparison.png", "My retrieval vs LlamaIndex"),
+        ("05_independent_retrieval.png", "Retrieval on independent questions"),
+    ]:
+        if (shots / name).exists():
+            st.image(str(shots / name), caption=caption)
+    st.markdown("[View the code on GitHub](https://github.com/summer-waves/jsj-intelligence)")
+    st.stop()
 
 st.title("JSJ Intelligence")
 st.caption(
