@@ -260,34 +260,13 @@ streamlit run app.py       # chat page at http://localhost:8501
 
 The source PDFs are web articles that are mostly "All rights reserved" and are used here privately. **They are not included in this repository** (`data/raw`, `data/clean` and `data/chunks` are git-ignored). `data/source_log.csv` records each document's title, author, URL and reuse status. To reproduce the project, collect your own documents and list them in the source log and in `FILENAME_TO_DOC_ID` in `src/ingest.py`.
 
-## Run with Docker
+## Tech stack
 
-The Streamlit chat page can run in a container, so nobody has to install Python or the libraries.
+- **Language:** Python 3.11
+- **AI and retrieval:** Retrieval-augmented generation (RAG), BM25 keyword search (written from scratch), sentence-transformers embeddings (all-MiniLM-L6-v2), hybrid search with reciprocal rank fusion
+- **Language models:** Ollama running llama3.2 (3B) and qwen2.5:7b, locally
+- **Frameworks and libraries:** Streamlit, pdfplumber, NumPy, LangChain, LlamaIndex
+- **Evaluation:** Hit@K, Precision@K, Recall@K and MRR for retrieval; rule-based answer checks; hand grading of answers
+- **Tools:** Docker and Docker Compose, Git and GitHub, Cursor, PowerShell, virtual environments (venv)
 
-- The image contains only the code. The source articles and chunk files (`data/`) are not
-  copied into it (see the copyright note); `docker-compose.yml` mounts your local `data/`
-  folder at run time. Run the pipeline first (`ingest.py`, `chunk.py`) so `data/chunks/` exists.
-- Ollama is not in the container. It runs on the host computer, and the container reaches it
-  at `host.docker.internal:11434` (set by the `OLLAMA_URL` environment variable).
-- The page is published on port 8502 (`http://localhost:8502`).
-
-```
-docker compose up --build     # first run: builds the image (several minutes)
-docker compose up             # later runs
-docker compose down           # stop and remove the container
-```
-
-Requires Docker Desktop and a running Ollama with `llama3.2` pulled.
-
-
-## Roadmap
-
-- [x] Ingestion, chunking, BM25 / dense / hybrid retrieval, evaluation, grounded answers with citations
-- [x] Streamlit chat interface
-- [x] Answer-quality evaluation and code-level safety guards
-- [x] Larger model comparison
-- [x] Chunk-size experiment
-- [ ] More evaluation questions written by people who have not read the documents
-- [x] Re-implementation with LangChain for comparison (see "LangChain comparison" above)
-- [x] Docker
-- [x] LlamaIndex comparision
+**What I built:** a document ingestion and chunking pipeline; three retrieval methods; cited, safety-guarded answer generation; a Streamlit chat interface; an evaluation framework with independent test questions; framework comparisons with LangChain and LlamaIndex; and a Docker setup.
