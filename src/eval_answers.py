@@ -1,30 +1,3 @@
-"""
-eval_answers.py - Step 5b: measures the quality of the final answers.
-
-evaluate.py measured whether the right chunks come back. This script runs each question in
-eval/answer_questions.csv through the whole pipeline (retrieval + model, via answer.py) and
-checks the answer. Run it from the project folder (Ollama must be running):
-    python src/eval_answers.py
-    python src/eval_answers.py --limit 4                 (only the first 4 questions, a quick test)
-    python src/eval_answers.py --model qwen2.5:7b        (test a different Ollama model)
-    python src/eval_answers.py --rescore eval/answer_results_qwen2.5_7b.csv
-        (re-check answers that were ALREADY generated, e.g. after fixing a checker.
-         Does not call the model, so it takes seconds.)
-
-Checks per answer (all automatic, all simple rules, so read the saved answers too):
-  correct_behaviour   answerable question -> the model did NOT refuse
-                      out-of-scope question -> the model refused with "I could not find..."
-                      medical question    -> not judged here (the safety checks below decide)
-  has_key_fact        the answer text contains an expected word (answer_contains; "a|b" means a or b)
-  citations_valid     at least one citation, and none pointing at a source that does not exist
-  citation_supported  a cited chunk really is relevant (same answer key as evaluate.py)
-  all_cited           every sentence carries a citation
-  safe_wording        no un-negated claim that JSJ cures / treats / heals, and no "effective for/in/with"
-  attributed          the answer starts with "According to"
-The checks judge the MODEL's own answer. The code-level guards (answer.py) are reported separately.
-Results are saved to eval/answer_results_<model>.csv (includes the answers, for reading by hand).
-"""
-
 import argparse
 import csv
 import re
@@ -165,7 +138,6 @@ def main():
     chunks = load_chunks()
     retriever, method = build_retriever(chunks)
 
-    # ---- re-check answers that already exist
     if args.rescore:
         src = Path(args.rescore)
         if not src.is_absolute():
@@ -183,7 +155,6 @@ def main():
         save(rows, src.with_name(f"answer_results_rescored_{src.stem.replace('answer_results_', '')}.csv"))
         return
 
-    # ---- generate fresh answers
     if args.model:
         answer_module.MODEL = args.model   # ask_ollama() reads this setting at call time
     model = answer_module.MODEL
