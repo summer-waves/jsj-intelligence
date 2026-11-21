@@ -1,16 +1,3 @@
-"""
-ingest.py - Step 1 of the JSJ Intelligence pipeline.
-
-What this script does:
-  1. Reads data/source_log.csv to learn which documents exist (and which to include).
-  2. Opens every PDF in data/raw/ and extracts its text.
-  3. Removes website clutter (menus, page headers/footers, link lists, promo banners).
-  4. Saves one clean text file per document to data/clean/ (named jsj_001.txt, ...).
-  5. Prints a summary so you can spot problems.
-
-Run it from the project folder with:   python src/ingest.py
-"""
-
 import csv
 import logging
 import re
@@ -21,19 +8,11 @@ import pdfplumber
 # pdfplumber prints harmless font warnings; hide them so the summary stays readable.
 logging.getLogger("pdfminer").setLevel(logging.ERROR)
 
-# ----------------------------------------------------------------------------
-# 1. Paths (all relative to the project folder, so the script works anywhere)
-# ----------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 CLEAN_DIR = PROJECT_ROOT / "data" / "clean"
 SOURCE_LOG = PROJECT_ROOT / "data" / "source_log.csv"
 
-# ----------------------------------------------------------------------------
-# 2. Which PDF file belongs to which doc_id.
-#    Each key is a piece of the PDF's file name (lowercase). The first part of
-#    the match must be unique: exactly one PDF may match each key.
-# ----------------------------------------------------------------------------
 FILENAME_TO_DOC_ID = {
     "how to soothe your nervous system": "jsj_001",
     "unlock calm and clarity": "jsj_002",
@@ -53,14 +32,6 @@ FILENAME_TO_DOC_ID = {
     "the art of jin shin jyutsu.pdf": "jsj_016",
 }
 
-# ----------------------------------------------------------------------------
-# 3. Special rules for the few PDFs that are laid out differently.
-#    crop_right: ignore everything to the right of this x position on the page
-#                (MarinHealth has a sidebar that mixes into the article text).
-#    start_after: throw away every line up to and including the first line that
-#                 starts with this text (removes the website menu at the top).
-#    end_at: stop at the first line that starts with this text.
-# ----------------------------------------------------------------------------
 DOC_RULES = {
     "jsj_015": {
         "crop_right": 405,
@@ -69,10 +40,6 @@ DOC_RULES = {
     },
 }
 
-# ----------------------------------------------------------------------------
-# 4. Generic cleaning rules for the Flows for Life articles and similar pages.
-# ----------------------------------------------------------------------------
-# Everything from the first line that starts with one of these is removed.
 END_MARKERS = [
     "want to practice",
     "want to learn more",

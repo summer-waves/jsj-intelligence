@@ -1,11 +1,3 @@
-"""
-show_answers.py - print saved answers from an answer_results_*.csv so you can read them.
-
-Usage (from the project folder):
-    python src/show_answers.py eval/answer_results_llama3.2_independent_answer_questions.csv i02 i06 i07
-Give no question ids to print every answer.
-"""
-
 import csv
 import sys
 import textwrap

@@ -1,19 +1,3 @@
-"""
-langchain_version.py - the same retrieval step, built with LangChain, compared with ours.
-
-It uses exactly the same chunks (data/chunks/chunks.jsonl), the same 34 questions
-(eval/questions.csv), the same relevance rule and the same metrics as evaluate.py, so any
-difference in the numbers comes from the retrievers themselves:
-
-    from scratch (retrieval.py)          LangChain
-    BM25Retriever (stemming, stopwords)  langchain_community BM25Retriever (rank_bm25, whitespace split)
-    DenseRetriever (our numpy search)    InMemoryVectorStore + HuggingFaceEmbeddings (same MiniLM model)
-    HybridRetriever (our RRF)            EnsembleRetriever (LangChain's own rank fusion)
-
-Install (once, in your .venv):   pip install -r requirements-langchain.txt
-Run from the project folder:     python src/langchain_version.py
-"""
-
 import argparse
 import csv
 import sys
@@ -70,12 +54,10 @@ def main():
         if q["total_relevant"] > 0:
             questions.append(q)
 
-    # ---- our own retrievers
     ours_bm25 = BM25Retriever(chunks)
     ours_dense = DenseRetriever(chunks)
     ours_hybrid = HybridRetriever(chunks, [ours_bm25, ours_dense])
 
-    # ---- LangChain retrievers over the same chunks (title + text, as in our own indexing)
     documents = [
         Document(page_content=chunk_text(c),
                  metadata={"chunk_id": c["chunk_id"], "doc_id": c["doc_id"], "text": c["text"]})

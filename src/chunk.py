@@ -1,26 +1,9 @@
-"""
-chunk.py - Step 2 of the JSJ Intelligence pipeline.
-
-What this script does:
-  1. Reads every clean text file in data/clean/ (made by ingest.py).
-  2. Splits each document into sentences, keeping headings as their own pieces.
-  3. Packs the sentences into chunks of about MAX_WORDS words. Neighbouring chunks
-     share about OVERLAP_WORDS words, so an idea that sits on a boundary is still
-     whole in at least one chunk.
-  4. Saves all chunks to data/chunks/chunks.jsonl (one JSON record per line),
-     together with the document's title, site and URL (needed later for citations).
-
-Run it from the project folder with:   python src/chunk.py
-"""
-
 import csv
 import json
 import re
 from pathlib import Path
 
-# ----------------------------------------------------------------------------
-# Settings you can change later to test how chunk size affects search quality.
-# ----------------------------------------------------------------------------
+
 MAX_WORDS = 180      # a chunk is closed once adding the next sentence would pass this
 OVERLAP_WORDS = 35   # how much of the end of a chunk is repeated at the start of the next
 
@@ -76,7 +59,6 @@ def pack_units(units):
     for unit in units:
         n = word_count(unit)
         if current and current_words + n > MAX_WORDS:
-            # A heading must not be the last thing in a chunk: move it to the next chunk.
             carried = []
             while len(current) > 1 and is_heading(current[-1]):
                 carried.insert(0, current.pop())

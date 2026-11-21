@@ -1,19 +1,3 @@
-"""
-chunk_experiment.py - tests how chunk size affects retrieval quality.
-
-For each (MAX_WORDS, OVERLAP_WORDS) setting below, this script
-    1. re-cuts the clean documents into chunks IN MEMORY,
-    2. runs the same 34 questions from eval/questions.csv through BM25, dense and hybrid search,
-    3. prints one table and saves it to eval/chunk_experiment.csv.
-
-It does NOT change data/chunks/chunks.jsonl or your saved embeddings. Embeddings for the
-experiment are stored in data/chunks/experiment/ (inside the git-ignored data/chunks folder).
-
-Run it from the project folder:
-    python src/chunk_experiment.py
-    python src/chunk_experiment.py --k 3
-"""
-
 import argparse
 import csv
 import sys
