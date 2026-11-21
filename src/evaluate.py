@@ -1,28 +1,3 @@
-"""
-evaluate.py - Step 4 of the JSJ Intelligence pipeline.
-
-Measures how good each retrieval method is, using the questions in eval/questions.csv.
-
-For every question the script asks each method for its top K chunks, then checks each
-returned chunk against the answer key. A chunk counts as RELEVANT when:
-    1. its doc_id is listed in the question's relevant_docs, AND
-    2. its text contains every word/phrase listed in must_contain (lowercase match).
-Because relevance is decided by text rather than by chunk number, the answer key keeps
-working if you change the chunk size in chunk.py and re-run.
-
-Metrics (all averaged over the questions):
-    Hit@K        share of questions with at least one relevant chunk in the top K
-    Precision@K  share of the K returned chunks that are relevant
-    Recall@K     relevant chunks found in the top K / all relevant chunks that exist
-    MRR          mean of 1 / (rank of the first relevant chunk); 0 if none in the top K
-    Latency      average milliseconds per question
-
-Run it from the project folder:
-    python src/evaluate.py
-    python src/evaluate.py --k 3
-    python src/evaluate.py --methods bm25 hybrid
-"""
-
 import argparse
 import csv
 import sys
@@ -163,14 +138,12 @@ def main():
         }
         summary[name]["_failed"] = failed
 
-    # ---- main table
     cols = [f"Hit@{k}", f"Precision@{k}", f"Recall@{k}", "MRR", "Latency ms"]
     print(f"{'method':<10}" + "".join(f"{c:>15}" for c in cols))
     for name, s in summary.items():
         print(f"{name:<10}" + "".join(
             f"{s[c]:>15.1f}" if c == "Latency ms" else f"{s[c]:>15.3f}" for c in cols))
 
-    # ---- Hit@K split by question type
     types = sorted({q["type"] for q in questions})
     print(f"\nHit@{k} by question type")
     print(f"{'type':<16}{'n':>4}" + "".join(f"{m:>10}" for m in summary))
@@ -179,13 +152,11 @@ def main():
         print(f"{t:<16}{n_t:>4}" + "".join(
             f"{sum(by_type[m][t]) / len(by_type[m][t]):>10.2f}" for m in summary))
 
-    # ---- failed questions
     for name, s in summary.items():
         print(f"\n{name}: {len(s['_failed'])} question(s) with no relevant chunk in the top {k}")
         for q in s["_failed"]:
             print(f"  {q['question_id']} [{q['type']}] {q['question']}")
 
-    # ---- save per-question results
     results_path.parent.mkdir(exist_ok=True)
     with open(results_path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
