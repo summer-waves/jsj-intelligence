@@ -1,0 +1,5 @@
+# Only needed for src/llamaindex_version.py (the LlamaIndex comparison)
+llama-index-core
+llama-index-embeddings-huggingface
+llama-index-retrievers-bm25
+sqlalchemy<2.1   # works around Windows Smart App Control blocking a compiled SQLAlchemy 2.1 file

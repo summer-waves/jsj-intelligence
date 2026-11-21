@@ -1,0 +1,7 @@
+method,build,hit@5,precision@5,recall@5,mrr,ms_per_query
+bm25,from scratch,0.882,0.406,0.546,0.815,2.3
+bm25,LlamaIndex,0.853,0.424,0.559,0.771,4.2
+dense,from scratch,0.912,0.388,0.557,0.77,44.2
+dense,LlamaIndex,0.912,0.388,0.557,0.77,46.4
+hybrid,from scratch,0.941,0.435,0.617,0.809,33.6
+hybrid,LlamaIndex,0.941,0.429,0.59,0.806,36.4
