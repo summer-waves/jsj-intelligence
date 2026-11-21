@@ -1,19 +1,3 @@
-"""
-llamaindex_version.py - the same retrieval step, built with LlamaIndex, compared with ours.
-
-Same chunks (data/chunks/chunks.jsonl), same 34 questions (eval/questions.csv), same relevance
-rule and same metrics as evaluate.py and langchain_version.py, so any difference in the numbers
-comes from the retrievers themselves:
-
-    from scratch (retrieval.py)          LlamaIndex
-    BM25Retriever (stemming, stopwords)  llama_index BM25Retriever (bm25s library)
-    DenseRetriever (our numpy search)    VectorStoreIndex + HuggingFaceEmbedding (same MiniLM model)
-    HybridRetriever (our RRF)            QueryFusionRetriever, mode "reciprocal_rerank"
-
-Install (once, in your .venv):   pip install -r requirements-llamaindex.txt
-Run from the project folder:     python src/llamaindex_version.py
-"""
-
 import argparse
 import csv
 import sys
@@ -73,12 +57,10 @@ def main():
         if q["total_relevant"] > 0:
             questions.append(q)
 
-    # ---- our own retrievers
     ours_bm25 = BM25Retriever(chunks)
     ours_dense = DenseRetriever(chunks)
     ours_hybrid = HybridRetriever(chunks, [ours_bm25, ours_dense])
 
-    # ---- LlamaIndex retrievers over the same chunks (title + text, as in our own indexing)
     embed_model = HuggingFaceEmbedding(model_name=MODEL_NAME)   # normalizes vectors by default
     Settings.embed_model = embed_model
     Settings.llm = None   # we only retrieve; this stops LlamaIndex from looking for an OpenAI key
