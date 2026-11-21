@@ -11,7 +11,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from retrieval import BM25Retriever, HybridRetriever, load_chunks  # noqa: E402
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
-MODEL = os.environ.get("JSJ_MODEL", "llama3.2")  # change with: $env:JSJ_MODEL = "qwen2.5:7b"
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY")
+HOSTED_MODEL = os.environ.get("JSJ_HOSTED_MODEL", "claude-haiku-5-5")
+MODEL = HOSTED_MODEL if ANTHROPIC_KEY else os.environ.get("JSJ_MODEL", "llama3.2")
 TOP_K = 5
 
 SYSTEM_RULES = """You are JSJ Intelligence, an assistant that answers questions about Jin Shin Jyutsu (JSJ) using ONLY the numbered SOURCES provided in the user's message.
@@ -78,8 +80,28 @@ def build_prompt(question, results):
         sources.append(f"[{n}] ({r['title']})\n{r['text']}")
     return "SOURCES:\n\n" + "\n\n".join(sources) + f"\n\nQUESTION: {question}"
 
+def ask_hosted(prompt):
+    body = {
+        "model": MODEL,
+        "max_tokens": 700,
+        "temperature": 0.1,
+        "system": SYSTEM_RULES,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages", data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY,
+                 "anthropic-version": "2023-06-01"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            return json.loads(resp.read().decode("utf-8"))["content"][0]["text"].strip()
+    except urllib.error.URLError as e:
+        raise OllamaError(f"Could not get an answer from the hosted model ({e}).")
 
 def ask_ollama(prompt):
+   if ANTHROPIC_KEY:
+      return ask_hosted(prompt)
     body = {
         "model": MODEL,
         "stream": False,
