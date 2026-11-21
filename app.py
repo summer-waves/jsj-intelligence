@@ -1,3 +1,4 @@
+import base64
 import sys
 from pathlib import Path
 
@@ -13,8 +14,43 @@ from retrieval import load_chunks  # noqa: E402
 st.set_page_config(page_title="JSJ Intelligence", page_icon="🖐️")
 
 
+def add_background():
+    """Use assets/background.jpg (or .jpeg/.png) as the page background. Does nothing if the file is missing."""
+    assets = Path(__file__).resolve().parent / "assets"
+    for name, mime in (("background.jpg", "jpeg"), ("background.jpeg", "jpeg"), ("background.png", "png")):
+        path = assets / name
+        if path.exists():
+            data = base64.b64encode(path.read_bytes()).decode()
+            st.markdown(
+                f"""
+                <style>
+                .stApp {{
+                    background-image: url("data:image/{mime};base64,{data}");
+                    background-size: cover;
+                    background-position: center;
+                    background-attachment: fixed;
+                }}
+                [data-testid="stMainBlockContainer"], .block-container {{
+                    background: rgba(255, 255, 255, 0.85);
+                    border-radius: 16px;
+                    padding: 2rem 2.5rem 3rem 2.5rem;
+                    margin-top: 1.5rem;
+                    margin-bottom: 1.5rem;
+                }}
+                [data-testid="stHeader"] {{ background: transparent; }}
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
+            return
+
+
+add_background()
+
+
 @st.cache_resource(show_spinner="Loading the document library and search models...")
 def get_retriever():
+    """Runs once per session of the app, not on every question."""
     retriever, method = build_retriever(load_chunks())
     return retriever, method
 
@@ -85,6 +121,7 @@ def excerpt(text, n=EXCERPT_WORDS):
 
 
 def show_result(r):
+    """Draw one answer, with all the notes and checks."""
     if r["emergency"]:
         st.error(EMERGENCY_NOTE)
     if r["health"]:
@@ -115,7 +152,9 @@ for r in st.session_state.history:
     with st.chat_message("assistant"):
         show_result(r)
 
-typed = st.chat_input("Ask a question about Jin Shin Jyutsu")
+typed = st.chat_input(
+    "Ask a question about relaxation, stress, yoga or massage" if DEMO else "Ask a question about Jin Shin Jyutsu"
+)
 question = picked or typed
 
 if question:
