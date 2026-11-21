@@ -6,6 +6,12 @@ The goal of the project is to build each part of a RAG pipeline from scratch (in
 
 > **Not medical advice.** The assistant reports what the JSJ teachings in the library say. It does not claim that JSJ treats or cures any condition, and the library is not scientific evidence. Anyone with symptoms should see a doctor.
 
+
+**Live demo:** https://jsj-intelligence-hatkxbqfauvmjm5tfyj5pk.streamlit.app/
+
+The public demo answers from five public-domain NIH (NCCIH) pages on relaxation, stress, anxiety, yoga and massage, using a hosted model (Claude Haiku). My private Jin Shin Jyutsu library is not published because the source articles are not mine to share, so the full JSJ version runs locally.
+
+
 ## How it works
 
 ```
