@@ -1,20 +1,33 @@
+# Starts the whole project with one command:   docker compose up --build
+#   website  -> http://localhost:3000
+#   API      -> http://localhost:8000/docs
+# The Anthropic key is read from your terminal ($env:ANTHROPIC_API_KEY) and is never written to a file.
 services:
-  app:
-    build: .
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
-      - "8502:8501"
+      - "8000:8000"
     environment:
-      # Ollama runs on your Windows machine, not inside the container.
-      # host.docker.internal is Docker's name for "the computer running Docker".
-      OLLAMA_URL: "http://host.docker.internal:11434/api/chat"
-      JSJ_MODEL: "llama3.2"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      JSJ_LIBRARY_MODE: "demo"
+      JSJ_LLM: "anthropic"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY in this terminal first}"
+      JSJ_EXCERPT_WORDS: "150"
+      JSJ_CORS_ORIGINS: "http://localhost:3000"
     volumes:
-      # Your local data folder (chunks and cached embeddings) appears inside the container.
-      - ./data:/app/data
       # Cached embedding model, so it is downloaded only once.
       - hf-cache:/models
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:8000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   hf-cache:
