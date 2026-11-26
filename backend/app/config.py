@@ -24,7 +24,7 @@ class Settings:
     embeddings_path: Path
     embeddings_meta_path: Path
     retrieval: str           # "hybrid" or "bm25"
-    llm_backend: str         # "auto", "anthropic" or "ollama"
+    llm_backend: str         # "auto", "anthropic", "gemini" or "ollama"
     anthropic_model: str
     ollama_model: str
     ollama_url: str
@@ -32,6 +32,10 @@ class Settings:
     excerpt_words: int
     cors_origins: tuple
     anthropic_key: str | None = field(default=None, repr=False)  # repr=False: never printed in logs
+    # Gemini on Google Cloud. No key: the login comes from `gcloud auth application-default login` (or the Cloud Run service account).
+    gcp_project: str | None = None
+    gcp_location: str = "global"
+    gemini_model: str = "gemini-3.5-flash-lite"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -66,4 +70,7 @@ class Settings:
             excerpt_words=int(os.environ.get("JSJ_EXCERPT_WORDS", "40")),
             cors_origins=tuple(o.strip() for o in origins.split(",") if o.strip()),
             anthropic_key=os.environ.get("ANTHROPIC_API_KEY") or None,
+            gcp_project=os.environ.get("JSJ_GCP_PROJECT") or os.environ.get("GOOGLE_CLOUD_PROJECT") or None,
+            gcp_location=os.environ.get("JSJ_GCP_LOCATION", "global").strip(),
+            gemini_model=os.environ.get("JSJ_GEMINI_MODEL", "gemini-3.5-flash-lite").strip(),
         )
